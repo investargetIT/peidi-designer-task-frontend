@@ -226,7 +226,7 @@ onMounted(() => {
 
 <template>
   <div class="peidi-login-container">
-    <div class="pridi-loader" />
+    <div class="peidi-loader" />
   </div>
 </template>
 
@@ -275,7 +275,7 @@ onMounted(() => {
     overflow: hidden;
   }
 
-  .pridi-loader {
+  .peidi-loader {
     width: 800px;
     height: 800px;
     background-image: url("@/assets/login/loading.svg");
