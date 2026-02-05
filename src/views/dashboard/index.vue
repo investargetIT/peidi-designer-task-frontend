@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { TASK_TABS } from "./config";
 import StatusCard from "./components/statusCard/index.vue";
+import TitleCard from "./components/titleCard/index.vue";
 
 interface StatusItem {
   id: string;
@@ -138,10 +139,92 @@ const statusItems: StatusItem[] = [
 ];
 
 const tabActive = ref("all");
+
+// 修改计算属性：确保始终返回所有四个状态项，即使任务为空
+const filteredStatusItems = computed<StatusItem[]>(() => {
+  if (tabActive.value === "all") {
+    // 全部：返回所有状态项，保持原有任务列表
+    return statusItems.map(status => ({
+      ...status,
+      tasks: status.tasks,
+      count: status.tasks.length
+    }));
+  }
+
+  // 其他选项卡：返回所有状态项，但更新任务列表为筛选后的结果
+  const statusMap: Record<string, string> = {
+    normal: "info",
+    insert: "warning",
+    processing: "success",
+    pending: "default",
+    outsourced: "info",
+    completed: "default"
+  };
+
+  const targetType = statusMap[tabActive.value];
+  if (!targetType) return statusItems;
+
+  return statusItems.map(status => {
+    // 筛选出匹配的任务
+    const filteredTasks = status.tasks.filter(
+      task => task.status.type === targetType
+    );
+
+    // 返回状态项，更新任务列表和计数（即使为空也返回）
+    return {
+      ...status,
+      tasks: filteredTasks,
+      count: filteredTasks.length
+    };
+  });
+});
+
+// 计算每个选项卡的任务数量
+const getTabCount = (tabValue: string): number => {
+  if (tabValue === "all") {
+    // 全部：统计所有任务
+    return statusItems.reduce(
+      (total, status) => total + status.tasks.length,
+      0
+    );
+  }
+
+  // 其他选项卡：根据任务状态筛选
+  const statusMap: Record<string, string> = {
+    normal: "info",
+    insert: "warning",
+    processing: "success",
+    pending: "default",
+    outsourced: "info",
+    completed: "default"
+  };
+
+  const targetType = statusMap[tabValue];
+  if (!targetType) return 0;
+
+  return statusItems.reduce((total, status) => {
+    const count = status.tasks.filter(
+      task => task.status.type === targetType
+    ).length;
+    return total + count;
+  }, 0);
+};
+
+// 为每个选项卡计算数量
+const tabCounts = computed(() => {
+  const counts: Record<string, number> = {};
+  TASK_TABS.forEach(tab => {
+    counts[tab.value] = getTabCount(tab.value);
+  });
+  return counts;
+});
 </script>
 
 <template>
   <div>
+    <!-- 标题栏 -->
+    <TitleCard />
+
     <!-- 选项卡 -->
     <div class="peidi-dashboard-tabs flex">
       <div
@@ -151,14 +234,14 @@ const tabActive = ref("all");
         :class="{ 'peidi-dashboard-tab-active': tabActive === item.value }"
         @click="tabActive = item.value"
       >
-        {{ item.label }} <span>(1)</span>
+        {{ item.label }} <span>({{ tabCounts[item.value] }})</span>
       </div>
     </div>
 
     <!-- 状态卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-[20px]">
       <StatusCard
-        v-for="status in statusItems"
+        v-for="status in filteredStatusItems"
         :key="status.id"
         :status-config="status"
         :tasks="status.tasks"

@@ -11,6 +11,8 @@ import RiInformationLine from "~icons/ri/information-line?raw";
 import RiBugLine from "~icons/ri/bug-line?raw";
 import TdesignApp from "~icons/tdesign/app?raw";
 import FluentMdl2UserGauge from "~icons/fluent-mdl2/user-gauge?raw";
+import PixelarticonsNotesPlus from "~icons/pixelarticons/notes-plus?raw";
+import IxDetails from "~icons/ix/details?raw";
 
 const icons = [
   // Element Plus Icon: https://github.com/element-plus/element-plus-icons
@@ -20,7 +22,9 @@ const icons = [
   ["ri/information-line", RiInformationLine],
   ["ri/bug-line", RiBugLine],
   ["tdesign/app", TdesignApp],
-  ["fluent-mdl2/user-gauge", FluentMdl2UserGauge]
+  ["fluent-mdl2/user-gauge", FluentMdl2UserGauge],
+  ["pixelarticons/notes-plus", PixelarticonsNotesPlus],
+  ["ix/details", IxDetails],
 ];
 
 // 本地菜单图标，后端在路由的 icon 中返回对应的图标字符串并且前端在此处使用 addIcon 添加即可渲染菜单图标

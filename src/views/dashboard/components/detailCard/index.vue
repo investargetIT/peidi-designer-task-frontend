@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+const router = useRouter();
+
 interface TaskItem {
   id: number;
   title: string;
@@ -42,10 +45,15 @@ const getPriorityClass = (level: string) => {
   };
   return classes[level as keyof typeof classes] || classes.low;
 };
+
+const handleDetailClick = () => {
+  // 跳转到详情页面
+  router.push({ name: "任务详情" });
+};
 </script>
 
 <template>
-  <div class="space-y-3">
+  <div class="space-y-3" @click="handleDetailClick">
     <div
       v-for="task in props.tasks"
       :key="task.id"
