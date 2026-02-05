@@ -278,7 +278,7 @@ onMounted(() => {
   .peidi-loader {
     width: 800px;
     height: 800px;
-    background-image: url("@/assets/login/loading.svg");
+    background-image: url("/loading.svg");
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
