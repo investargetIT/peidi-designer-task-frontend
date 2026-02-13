@@ -4,11 +4,7 @@ import PixelarticonsPlus from "~icons/pixelarticons/plus";
 
 const router = useRouter();
 
-interface DashboardStats {
-  totalRequests: number;
-}
-
-const stats: DashboardStats = {
+const stats = {
   totalRequests: 5
 };
 

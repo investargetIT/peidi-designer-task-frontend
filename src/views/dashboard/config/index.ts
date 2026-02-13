@@ -1,30 +1,30 @@
 export const TASK_TABS = [
   {
     label: "全部",
-    value: "all"
+    value: "ALL"
   },
   {
-    label: "普通队列",
-    value: "normal"
+    label: "草稿",
+    value: "DRAFT"
   },
   {
-    label: "插单处理",
-    value: "insert"
+    label: "待分配",
+    value: "PENDING"
   },
   {
     label: "进行中",
-    value: "processing"
+    value: "IN_PROGRESS"
   },
   {
     label: "待补充",
-    value: "pending"
+    value: "COMPLETED"
   },
   {
     label: "已外包",
-    value: "outsourced"
+    value: "OUTSOURCED"
   },
   {
     label: "已完成",
-    value: "completed"
+    value: "RUSH"
   }
 ];

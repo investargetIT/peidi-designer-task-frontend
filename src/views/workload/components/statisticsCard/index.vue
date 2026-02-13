@@ -1,16 +1,18 @@
 <script setup lang="ts">
-interface StatusItem {
-  id: string;
-  label: string;
-  count: number;
-  colorClass: string;
-}
+import { computed } from "vue";
 
-const statusItems: StatusItem[] = [
+const props = defineProps({
+  statisticsInfo: {
+    type: Object,
+    required: true
+  }
+});
+
+const statusItems = [
   {
     id: "active",
     label: "在岗",
-    count: 3,
+    count: 0,
     colorClass: "bg-blue-500"
   },
   {
@@ -27,9 +29,10 @@ const statusItems: StatusItem[] = [
   }
 ];
 
-const totalHours = 0;
-const maxHours = 660;
-const percentage = Math.round((totalHours / maxHours) * 100);
+const percentage = computed(() => {
+  const { totalHours, maxHours } = props.statisticsInfo;
+  return Math.round((totalHours / maxHours) * 100);
+});
 
 const getStatusClass = (id: string) => {
   const item = statusItems.find(item => item.id === id);
@@ -68,7 +71,8 @@ const getStatusClass = (id: string) => {
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium text-gray-700">团队本月工时</span>
           <span class="text-sm text-gray-600">
-            {{ totalHours }}h / {{ maxHours }}h （{{ percentage }}%）
+            {{ props.statisticsInfo.totalHours }}h /
+            {{ props.statisticsInfo.maxHours }}h （{{ percentage }}%）
           </span>
         </div>
 

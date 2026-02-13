@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { TASK_TABS } from "./config";
 import StatusCard from "./components/statusCard/index.vue";
 import TitleCard from "./components/titleCard/index.vue";
+import { ElMessage } from "element-plus";
+import { getPmDesignRequestsPage } from "@/api/design";
 
 interface StatusItem {
   id: string;
@@ -138,11 +140,11 @@ const statusItems: StatusItem[] = [
   }
 ];
 
-const tabActive = ref("all");
+const tabActive = ref("ALL");
 
 // 修改计算属性：确保始终返回所有四个状态项，即使任务为空
 const filteredStatusItems = computed<StatusItem[]>(() => {
-  if (tabActive.value === "all") {
+  if (tabActive.value === "ALL") {
     // 全部：返回所有状态项，保持原有任务列表
     return statusItems.map(status => ({
       ...status,
@@ -153,12 +155,12 @@ const filteredStatusItems = computed<StatusItem[]>(() => {
 
   // 其他选项卡：返回所有状态项，但更新任务列表为筛选后的结果
   const statusMap: Record<string, string> = {
-    normal: "info",
-    insert: "warning",
-    processing: "success",
-    pending: "default",
-    outsourced: "info",
-    completed: "default"
+    DRAFT: "info",
+    PENDING: "warning",
+    IN_PROGRESS: "success",
+    COMPLETED: "default",
+    OUTSOURCED: "info",
+    RUSH: "default"
   };
 
   const targetType = statusMap[tabActive.value];
@@ -181,7 +183,7 @@ const filteredStatusItems = computed<StatusItem[]>(() => {
 
 // 计算每个选项卡的任务数量
 const getTabCount = (tabValue: string): number => {
-  if (tabValue === "all") {
+  if (tabValue === "ALL") {
     // 全部：统计所有任务
     return statusItems.reduce(
       (total, status) => total + status.tasks.length,
@@ -191,12 +193,12 @@ const getTabCount = (tabValue: string): number => {
 
   // 其他选项卡：根据任务状态筛选
   const statusMap: Record<string, string> = {
-    normal: "info",
-    insert: "warning",
-    processing: "success",
-    pending: "default",
-    outsourced: "info",
-    completed: "default"
+    DRAFT: "info",
+    PENDING: "warning",
+    IN_PROGRESS: "success",
+    COMPLETED: "default",
+    OUTSOURCED: "info",
+    RUSH: "default"
   };
 
   const targetType = statusMap[tabValue];
@@ -217,6 +219,30 @@ const tabCounts = computed(() => {
     counts[tab.value] = getTabCount(tab.value);
   });
   return counts;
+});
+
+//#region 请求相关
+// 获取需求列表
+const fetchDesignTaskList = () => {
+  return getPmDesignRequestsPage({
+    pageNo: 1,
+    pageSize: 10e3
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        console.log("获取需求列表:", res?.data);
+      } else {
+        ElMessage.error("获取需求列表失败:" + res?.msg);
+      }
+    })
+    .catch(error => {
+      ElMessage.error("获取需求列表失败:" + error.message);
+    });
+};
+//#endregion
+
+onMounted(() => {
+  fetchDesignTaskList();
 });
 </script>
 

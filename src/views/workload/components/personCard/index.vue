@@ -1,27 +1,10 @@
 <script setup lang="ts">
-interface Designer {
-  id: number;
-  name: string;
-  department: string;
-  avatarText: string;
-  skills: Array<{
-    type: "primary" | "support";
-    label: string;
-  }>;
-  workloads: Array<{
-    title: string;
-    current: number;
-    max: number;
-  }>;
-  stats: Array<{
-    value: string | number;
-    label: string;
-  }>;
-}
-
-const props = defineProps<{
-  designer: Designer;
-}>();
+const props = defineProps({
+  designer: {
+    type: Object,
+    required: true
+  }
+});
 
 const getBadgeClass = (type: "primary" | "support") => {
   return type === "primary"
