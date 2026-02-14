@@ -2,8 +2,8 @@
 import { http } from "@/utils/http";
 
 export const commonUrlApi = (url: string) =>
-  `${"http://12.18.1.12:8087"}${url}`;
-// `${"https://api.peidigroup.cn"}${url}`;
+  // `${"http://12.18.1.12:8087"}${url}`;
+  `${"https://api.peidigroup.cn"}${url}`;
 
 interface PageConfig {
   pageNo: number;
@@ -42,6 +42,8 @@ export interface DesignTaskCreateParams {
   title: string;
   /** ✅使用场景 */
   usageScenario: string;
+  /** ✅创建用户ID */
+  createUserId: number | string;
 }
 export const postPmDesignRequestsNew = (data: DesignTaskCreateParams) => {
   return http.request("post", commonUrlApi("/pm/design/requests/new"), {
@@ -94,6 +96,10 @@ export interface DesignTaskRequest {
   description: string;
   /** 分配给的用户名（可为空）*/
   assignedToName: string | null;
+  /** 创建用户ID */
+  createUserId: number;
+  /** 创建用户名 */
+  createUserName: string;
 }
 export const getPmDesignRequestsPage = (params: PageConfig) => {
   return http.request("get", commonUrlApi("/pm/design/requests/page"), {
@@ -142,5 +148,86 @@ export const getPmDesignersPage = (
   return http.request("get", commonUrlApi("/pm/design/designers/page"), {
     params
   });
+};
+//#endregion
+
+//#region 获取需求详情
+export interface DesignTaskDetail {
+  /** 任务唯一标识符 */
+  id: number;
+  /** 任务标题 */
+  title: string;
+  /** 任务分类（一级类型）*/
+  category: string;
+  /** 任务类型（二级类型）*/
+  taskType: string;
+  /** 使用场景 */
+  usageScenario: string;
+  /** 影响范围 */
+  impactRange: string;
+  /** 优先级（数值越大优先级越高）*/
+  priority: number;
+  /** 任务状态 */
+  status: string;
+  /** 截止日期（ISO格式时间字符串）*/
+  deadline: string;
+  /** 预估工时（小时）*/
+  estimatedHours: number;
+  /** 分配给的用户ID */
+  assignedTo: number;
+  /** 是否为支持类任务 */
+  isSupport: boolean;
+  /** 备注信息（可为空）*/
+  remark: string | null;
+  /** 任务详细描述 */
+  description: string;
+  /** 分配给的用户名 */
+  assignedToName: string;
+  /** 创建用户ID */
+  createUserId: number;
+  /** 创建用户名（可为空）*/
+  createUserName: string | null;
+}
+
+export const getPmDesignRequestsDetail = (params: { requestId: string }) => {
+  return http.request(
+    "get",
+    commonUrlApi(`/pm/design/requests/${params.requestId}`),
+    {}
+  );
+};
+//#endregion
+
+/** 更新需求 */
+export const postPmDesignRequestsUpdate = (data: DesignTaskCreateParams) => {
+  return http.request("post", commonUrlApi("/pm/design/requests/update"), {
+    data
+  });
+};
+
+//#region 处理插单解决方案
+export interface TaskExtensionRequestDTO {
+  /** 解决方案类型: "delay" 延期 | "outsource" 外包 | "rush" 强制插单 */
+  resolution: "delay" | "outsource" | "rush";
+  /** 新的截止日期（延期时必填） */
+  newDeadline: string;
+  /** 外包原因 */
+  reason: string;
+  /** 插单原因（强制插单时必填） */
+  rushReason: string;
+  /** 负面影响（强制插单时必填） */
+  negativeImpact: string;
+}
+export const postPmDesignRequestsResolve = (data: {
+  dto: TaskExtensionRequestDTO;
+  requestId: string | number;
+}) => {
+  return http.request(
+    "post",
+    commonUrlApi(`/pm/design/requests/${data.requestId}/resolve`),
+    {
+      data
+    }
+  );
 };
 //#endregion

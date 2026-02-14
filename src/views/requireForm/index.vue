@@ -5,10 +5,12 @@ import {
   type DesignTaskCreateParams,
   getPmDesignCategoryPage,
   postPmDesignAllocationCheck,
-  postPmDesignRequestsNew
+  postPmDesignRequestsNew,
+  postPmDesignRequestsResolve
 } from "@/api/design";
 import { storageLocal } from "@pureadmin/utils";
 import { ElMessage } from "element-plus";
+import ErrorDialog from "./components/resultDialog/error.vue";
 import ResultDialog from "./components/resultDialog/index.vue";
 
 const USER_INFO: any = storageLocal().getItem("dataSource");
@@ -79,35 +81,35 @@ const baseInfoConfig = ref({
   usageScenarios: [
     {
       value: "S1",
-      label: "S1 销售转化直接影响销售、转化、GMV 的设计"
+      label: "S1 销售转化 （直接影响销售、转化、GMV 的设计）"
     },
     {
       value: "S2",
-      label: "S2 对外品牌影响品牌形象、认知，但不直接转化"
+      label: "S2 对外品牌 （影响品牌形象、认知，但不直接转化）"
     },
     {
       value: "S3",
-      label: "S3 内部支持支持公司内部运作，不直接面对用户"
+      label: "S3 内部支持 （支持公司内部运作，不直接面对用户）"
     },
-    { value: "S4", label: "S4 长期资产偏体系、标准、长期使用" }
+    { value: "S4", label: "S4 长期资产 （偏体系、标准、长期使用）" }
   ],
   // 只传I1~I4
   impactRanges: [
     {
       value: "I1",
-      label: "I1 单一 仅影响一个具体内容或一次性使用场景，不复用、不扩散"
+      label: "I1 单一 （仅影响一个具体内容或一次性使用场景，不复用、不扩散）"
     },
     {
       value: "I2",
-      label: "I2 项目 影响一个完整项目或活动周期，但范围有限"
+      label: "I2 项目 （影响一个完整项目或活动周期，但范围有限）"
     },
     {
       value: "I3",
-      label: "I3 多项目 影响多个项目、多个渠道或多个产品，存在复用或联动"
+      label: "I3 多项目 （影响多个项目、多个渠道或多个产品，存在复用或联动）"
     },
     {
       value: "I4",
-      label: "I4 公司级 影响公司或品牌整体形象，具有长期、系统性影响"
+      label: "I4 公司级 （影响公司或品牌整体形象，具有长期、系统性影响）"
     }
   ]
 });
@@ -151,15 +153,18 @@ const fetchCheckAllocation = (
 
 const fetchAddDesignTask = (
   params: DesignTaskCreateParams,
-  callback?: () => void
+  callback?: (requestId: number | string | null) => void
 ) => {
   // console.log("添加设计需求:", params);
   // return;
-  return postPmDesignRequestsNew(params)
+  return postPmDesignRequestsNew({
+    ...params,
+    createUserId: USER_INFO?.id || null
+  })
     .then((res: any) => {
       if (res?.code === 200) {
         ElMessage.success("添加设计需求成功");
-        callback?.();
+        callback?.(res.data?.requestId || null);
       } else {
         ElMessage.error("添加设计需求失败:" + res?.msg);
       }
@@ -168,11 +173,38 @@ const fetchAddDesignTask = (
       ElMessage.error("添加设计需求失败:" + error?.message);
     });
 };
+
+// 处理插单解决方案
+const fetchRushDesignTask = (params: any, callback?: () => void) => {
+  // console.log("处理插单解决方案:", params);
+  // return;
+  return postPmDesignRequestsResolve({
+    ...params
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        ElMessage.success("插单成功");
+        callback?.();
+      } else {
+        ElMessage.error("插单失败:" + res?.msg);
+      }
+    })
+    .catch((error: any) => {
+      ElMessage.error("插单失败:" + error?.message);
+    });
+};
 //#endregion
 
 //#region 结果弹窗相关
 const resultDialogRef = ref();
+const errorDialogRef = ref();
 const handleInitDialog = (initData: any, sourceData: any) => {
+  // console.log("结果弹窗:", initData, sourceData);
+  // return;
+  if (initData?.status === "NEEDS_RESOLUTION") {
+    errorDialogRef.value?.initDialog(sourceData);
+    return;
+  }
   resultDialogRef.value?.initDialog(initData, sourceData);
 };
 //#endregion
@@ -246,6 +278,14 @@ onMounted(async () => {
 
     <div>
       <ResultDialog ref="resultDialogRef" :addFn="fetchAddDesignTask" />
+    </div>
+
+    <div>
+      <ErrorDialog
+        ref="errorDialogRef"
+        :addFn="fetchAddDesignTask"
+        :rushFn="fetchRushDesignTask"
+      />
     </div>
   </div>
 </template>

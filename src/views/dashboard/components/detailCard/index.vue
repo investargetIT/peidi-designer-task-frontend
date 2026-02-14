@@ -46,18 +46,20 @@ const getPriorityClass = (level: string) => {
   return classes[level as keyof typeof classes] || classes.low;
 };
 
-const handleDetailClick = () => {
+const handleDetailClick = (taskId: number) => {
+  // console.log("点击了任务详情:", taskId);
   // 跳转到详情页面
-  router.push({ name: "任务详情" });
+  router.push({ name: "任务详情", query: { requestId: taskId } });
 };
 </script>
 
 <template>
-  <div class="space-y-3" @click="handleDetailClick">
+  <div class="space-y-3">
     <div
       v-for="task in props.tasks"
       :key="task.id"
       class="flex flex-col gap-6 rounded-xl border py-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white"
+      @click="handleDetailClick(task.id)"
     >
       <div class="p-4 space-y-3">
         <!-- Title -->

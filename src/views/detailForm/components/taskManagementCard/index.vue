@@ -1,43 +1,29 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import LsiconSettingOutline from "~icons/lsicon/setting-outline";
 import BiClock from "~icons/bi/clock";
 
-interface TaskInfo {
-  title: string;
-  // ... other properties
-}
-
-interface WorkInfo {
-  assignee: string;
-  estimatedHours: number;
-  actualHours: number;
-  startTime: string;
-  endTime?: string;
-  // ... other properties
-}
-
 const props = defineProps<{
-  taskInfo: TaskInfo;
-  workInfo: WorkInfo;
+  taskDetail: any;
+  updateFn: (data: any) => void;
 }>();
 
-const status = ref("进行中");
-const estimatedHours = ref(props.workInfo.estimatedHours);
-const actualHours = ref(props.workInfo.actualHours);
+const status = ref();
+const estimatedHours = ref(0);
+const actualHours = ref(0);
 
 const statusOptions = [
-  { value: "待补充", label: "待补充", colorClass: "bg-yellow-400" },
-  { value: "普通队列", label: "普通队列", colorClass: "bg-blue-300" },
-  { value: "插单待处理", label: "插单待处理", colorClass: "bg-orange-400" },
-  { value: "进行中", label: "进行中", colorClass: "bg-green-300" },
-  { value: "已完成", label: "已完成", colorClass: "bg-gray-300" },
-  { value: "已外包", label: "已外包", colorClass: "bg-purple-300" }
+  { value: "DRAFT", label: "草稿", colorClass: "bg-yellow-400" },
+  { value: "PENDING", label: "待分配", colorClass: "bg-blue-300" },
+  { value: "RUSH", label: "插单处理", colorClass: "bg-orange-400" },
+  { value: "IN_PROGRESS", label: "进行中", colorClass: "bg-green-300" },
+  { value: "COMPLETED", label: "已完成", colorClass: "bg-gray-300" },
+  { value: "OUTSOURCED", label: "已外包", colorClass: "bg-purple-300" }
 ];
 
 // 计算属性控制按钮显示逻辑
-const showStartButton = computed(() => status.value === "普通队列");
-const showCompleteButton = computed(() => status.value === "进行中");
+const showStartButton = computed(() => status.value === "PENDING");
+const showCompleteButton = computed(() => status.value === "IN_PROGRESS");
 
 const getCurrentStatusColor = () => {
   const currentOption = statusOptions.find(
@@ -48,8 +34,27 @@ const getCurrentStatusColor = () => {
 
 const handleSave = () => {
   // 保存逻辑
-  console.log("保存更改");
+  if (props.taskDetail?.id) {
+    props.updateFn({
+      id: props.taskDetail.id,
+      estimatedHours: estimatedHours.value,
+      status: status.value
+    });
+  }
 };
+
+watch(
+  () => props.taskDetail,
+  newVal => {
+    estimatedHours.value = newVal.workInfo.estimatedHours;
+    actualHours.value = newVal.workInfo.actualHours;
+    status.value = newVal.basicInfo.statusSource;
+  },
+  {
+    immediate: true,
+    deep: true
+  }
+);
 </script>
 
 <template>
@@ -115,11 +120,11 @@ const handleSave = () => {
             class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center"
           >
             <span class="text-sm font-medium text-blue-600">
-              {{ workInfo.assignee.charAt(0) }}
+              {{ props.taskDetail.workInfo.assignee?.charAt(0) }}
             </span>
           </div>
           <div>
-            <p class="font-medium">{{ workInfo.assignee }}</p>
+            <p class="font-medium">{{ props.taskDetail.workInfo.assignee }}</p>
             <el-tag type="primary">主职任务</el-tag>
           </div>
         </div>
@@ -170,7 +175,6 @@ const handleSave = () => {
         <el-input-number
           v-model="estimatedHours"
           :min="0"
-          :max="999"
           placeholder="输入预计工时"
           class="w-full"
         />
@@ -189,7 +193,6 @@ const handleSave = () => {
         <el-input-number
           v-model="actualHours"
           :min="0"
-          :max="999"
           placeholder="输入实际工时"
           class="w-full"
         />
@@ -199,11 +202,14 @@ const handleSave = () => {
       <div class="p-3 bg-gray-100 rounded-lg space-y-2 text-sm">
         <div class="flex justify-between">
           <span class="text-gray-600">开始时间</span>
-          <span>{{ workInfo.startTime }}</span>
+          <span>{{ props.taskDetail.workInfo.startTime }}</span>
         </div>
-        <div v-if="workInfo.endTime" class="flex justify-between">
+        <div
+          v-if="props.taskDetail.workInfo.endTime"
+          class="flex justify-between"
+        >
           <span class="text-gray-600">完成时间</span>
-          <span>{{ workInfo.endTime }}</span>
+          <span>{{ props.taskDetail.workInfo.endTime }}</span>
         </div>
       </div>
 

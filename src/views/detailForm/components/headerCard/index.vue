@@ -1,21 +1,10 @@
 <script setup lang="ts">
-interface TaskInfo {
-  title: string;
-  category: string;
-  subCategory: string;
-  status: string;
-  priority: string;
-  assignee: string;
-}
-
-const taskInfo: TaskInfo = {
-  title: "618大促主视觉设计",
-  category: "品牌设计",
-  subCategory: "线下活动视觉",
-  status: "进行中",
-  priority: "极高",
-  assignee: "夏筠"
-};
+const props = defineProps({
+  taskDetail: {
+    type: Object,
+    required: true
+  }
+});
 
 const getBadgeClass = (type: "status" | "priority" | "assignee") => {
   const classes = {
@@ -32,10 +21,11 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
     <div class="flex items-start justify-between gap-4 mb-3">
       <div>
         <h1 class="text-2xl font-bold mb-2 text-gray-800">
-          {{ taskInfo.title }}
+          {{ props.taskDetail.title }}
         </h1>
         <p class="text-gray-600">
-          {{ taskInfo.category }} · {{ taskInfo.subCategory }}
+          {{ props.taskDetail.basicInfo.designType }} ·
+          {{ props.taskDetail.basicInfo.subType }}
         </p>
       </div>
       <div class="flex gap-2">
@@ -89,13 +79,15 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <span :class="getBadgeClass('status')">{{ taskInfo.status }}</span>
-      <span :class="getBadgeClass('priority')"
-        >优先级：{{ taskInfo.priority }}</span
-      >
-      <span :class="getBadgeClass('assignee')"
-        >负责人：{{ taskInfo.assignee }}</span
-      >
+      <span :class="getBadgeClass('status')">{{
+        props.taskDetail.basicInfo.status
+      }}</span>
+      <span :class="getBadgeClass('priority')">
+        优先级：{{ props.taskDetail.basicInfo.priority }}
+      </span>
+      <span :class="getBadgeClass('assignee')">
+        负责人：{{ props.taskDetail.workInfo.assignee }}
+      </span>
     </div>
   </div>
 </template>

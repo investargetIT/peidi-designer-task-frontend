@@ -1,5 +1,7 @@
 <!-- src/views/detailForm/components/basicInfoCard/index.vue -->
 <script setup lang="ts">
+import { ref, watch } from "vue";
+
 interface BasicInfo {
   designType: string;
   subType: string;
@@ -7,41 +9,83 @@ interface BasicInfo {
   usageScenario: string;
   impactRange: string;
   submitter: string;
+  priority: string;
+  status: string;
 }
 
-const props = defineProps<{
-  info: BasicInfo;
-}>();
+const props = defineProps({
+  info: {
+    type: Object as () => BasicInfo,
+    required: true
+  }
+});
 
 // 信息项配置数组
-const infoItems = [
+const infoItems = ref([
   {
     icon: "layers",
     label: "设计类型",
-    value: props.info.designType,
-    subValue: props.info.subType
+    value: "",
+    subValue: ""
   },
   {
     icon: "calendar",
     label: "截止时间",
-    value: props.info.deadline
+    value: ""
   },
   {
     icon: "target",
     label: "使用场景",
-    value: props.info.usageScenario
+    value: ""
   },
   {
     icon: "circle-alert",
     label: "影响范围",
-    value: props.info.impactRange
+    value: ""
   },
   {
     icon: "user",
     label: "提交人",
-    value: props.info.submitter
+    value: ""
   }
-];
+]);
+
+watch(
+  () => props.info,
+  newInfo => {
+    infoItems.value = [
+      {
+        icon: "layers",
+        label: "设计类型",
+        value: newInfo.designType,
+        subValue: newInfo.subType
+      },
+      {
+        icon: "calendar",
+        label: "截止时间",
+        value: newInfo.deadline
+      },
+      {
+        icon: "target",
+        label: "使用场景",
+        value: newInfo.usageScenario
+      },
+      {
+        icon: "circle-alert",
+        label: "影响范围",
+        value: newInfo.impactRange
+      },
+      {
+        icon: "user",
+        label: "提交人",
+        value: newInfo.submitter
+      }
+    ];
+  },
+  {
+    immediate: true
+  }
+);
 </script>
 <template>
   <div class="pd-detailForm-basicInfoCard-container">

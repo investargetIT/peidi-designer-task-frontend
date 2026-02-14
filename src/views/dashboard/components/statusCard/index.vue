@@ -145,7 +145,10 @@ const getIconDefinition = (iconName: string) => {
 
     <div class="px-6">
       <div class="space-y-3">
-        <DetailCard v-if="props.tasks.length > 0" :tasks="props.tasks" />
+        <el-scrollbar v-if="props.tasks.length > 0" height="720px">
+          <DetailCard :tasks="props.tasks" />
+        </el-scrollbar>
+
         <p v-else class="text-sm text-gray-600 text-center py-4">暂无需求</p>
       </div>
     </div>

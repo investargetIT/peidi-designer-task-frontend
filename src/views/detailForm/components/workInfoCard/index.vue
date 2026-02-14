@@ -1,5 +1,7 @@
 <!-- src/views/detailForm/components/workInfoCard/index.vue -->
 <script setup lang="ts">
+import { ref, watch } from "vue";
+
 interface WorkInfo {
   assignee: string;
   estimatedHours: number;
@@ -8,38 +10,77 @@ interface WorkInfo {
   endTime: string; // 新增完成时间字段
 }
 
-const props = defineProps<{
-  info: WorkInfo;
-}>();
+const props = defineProps({
+  info: {
+    type: Object as () => WorkInfo,
+    required: true
+  }
+});
 
 // 信息项配置数组
-const infoItems = [
+const infoItems = ref([
   {
     icon: "user",
     label: "负责人",
-    value: props.info.assignee
+    value: ""
   },
   {
     icon: "clock",
     label: "预计工时",
-    value: `${props.info.estimatedHours} 小时`
+    value: ""
   },
   {
     icon: "clock",
     label: "实际工时",
-    value: `${props.info.actualHours} 小时`
+    value: ""
   },
   {
     icon: "calendar",
     label: "开始时间",
-    value: props.info.startTime
+    value: ""
   },
   {
     icon: "calendar-check", // 新增完成时间图标
     label: "完成时间",
-    value: props.info.endTime
+    value: ""
   }
-];
+]);
+
+watch(
+  () => props.info,
+  newInfo => {
+    infoItems.value = [
+      {
+        icon: "user",
+        label: "负责人",
+        value: newInfo.assignee
+      },
+      {
+        icon: "clock",
+        label: "预计工时",
+        value: `${newInfo.estimatedHours} 小时`
+      },
+      {
+        icon: "clock",
+        label: "实际工时",
+        value: `${newInfo.actualHours} 小时`
+      },
+      {
+        icon: "calendar",
+        label: "开始时间",
+        value: newInfo.startTime
+      },
+      {
+        icon: "calendar-check", // 新增完成时间图标
+        label: "完成时间",
+        value: newInfo.endTime
+      }
+    ];
+  },
+  {
+    immediate: true
+  }
+);
 </script>
 
 <template>

@@ -14,7 +14,8 @@ const props = defineProps({
 const visible = ref(false);
 const infoData = ref({
   designerName: "",
-  priority: null
+  priority: null,
+  reason: ""
 });
 const sourceFormData = ref(null);
 
@@ -60,7 +61,8 @@ const initDialog = (initData: any, sourceData: any) => {
   // console.log("初始化表单", initData, sourceData);
   infoData.value = {
     designerName: initData?.designerName || "",
-    priority: initData?.priority || null
+    priority: initData?.priority || null,
+    reason: initData?.reason || ""
   };
   sourceFormData.value = sourceData;
   visible.value = true;
@@ -101,6 +103,8 @@ const handleBeforeClose = () => {
       @closed="handleBeforeClose"
     >
       <div>
+        <div class="text-lg text-blue-700">{{ infoData.reason }}</div>
+
         <div
           class="designer-info-alert mt-4 p-4 rounded-lg border-2 border-blue-200 bg-blue-50 text-blue-800 flex items-start gap-3"
         >

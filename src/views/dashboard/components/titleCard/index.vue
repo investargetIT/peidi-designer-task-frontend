@@ -4,10 +4,12 @@ import PixelarticonsPlus from "~icons/pixelarticons/plus";
 
 const router = useRouter();
 
-const stats = {
-  totalRequests: 5
-};
-
+const props = defineProps({
+  totalRequests: {
+    type: Number,
+    required: true
+  }
+});
 const getBadgeClass = () => {
   return "inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700";
 };
@@ -38,7 +40,7 @@ const handleAddClick = () => {
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-600">总需求数</span>
         <span :class="getBadgeClass()">
-          {{ stats.totalRequests }}
+          {{ props.totalRequests }}
         </span>
       </div>
     </div>
