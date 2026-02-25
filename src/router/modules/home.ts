@@ -6,7 +6,7 @@ export default {
   path: "/",
   name: "HomeLayout",
   component: Layout,
-  redirect: "/debug",
+  redirect: "/dashboard/index",
   meta: {
     icon: "",
     title: "",

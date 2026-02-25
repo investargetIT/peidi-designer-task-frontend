@@ -42,4 +42,7 @@ pnpm typecheck
 
 # 预览构建结果
 pnpm preview
+
+# 分析node_modules
+pnpx pnpx node-modules-inspector
 ```
