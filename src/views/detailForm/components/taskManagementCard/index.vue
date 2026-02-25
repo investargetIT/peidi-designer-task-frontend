@@ -56,9 +56,9 @@ const handleSave = () => {
 watch(
   () => [props.taskDetail, props.recordDetail],
   ([taskDetail, recordDetail]) => {
-    estimatedHours.value = taskDetail.workInfo.estimatedHours;
+    estimatedHours.value = taskDetail?.workInfo?.estimatedHours ?? 0;
     actualHours.value = recordDetail.descriptionExt?.actualHours || 0;
-    status.value = taskDetail.basicInfo.statusSource;
+    status.value = taskDetail?.basicInfo?.statusSource;
   },
   {
     immediate: true,
@@ -130,11 +130,11 @@ watch(
             class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center"
           >
             <span class="text-sm font-medium text-blue-600">
-              {{ props.taskDetail.workInfo.assignee?.charAt(0) }}
+              {{ props.taskDetail?.workInfo?.assignee?.charAt(0) }}
             </span>
           </div>
           <div>
-            <p class="font-medium">{{ props.taskDetail.workInfo.assignee }}</p>
+            <p class="font-medium">{{ props.taskDetail?.workInfo?.assignee }}</p>
             <el-tag type="primary">主职任务</el-tag>
           </div>
         </div>
