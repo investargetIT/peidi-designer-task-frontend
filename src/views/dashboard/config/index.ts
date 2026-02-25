@@ -16,7 +16,7 @@ export const TASK_TABS = [
     value: "IN_PROGRESS"
   },
   {
-    label: "待补充",
+    label: "已完成",
     value: "COMPLETED"
   },
   {
@@ -24,7 +24,7 @@ export const TASK_TABS = [
     value: "OUTSOURCED"
   },
   {
-    label: "已完成",
+    label: "插单处理",
     value: "RUSH"
   }
 ];

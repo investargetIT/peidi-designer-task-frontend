@@ -8,7 +8,9 @@ import TaskManagementCard from "./components/taskManagementCard/index.vue";
 import { useRoute } from "vue-router";
 import {
   getPmDesignRequestsDetail,
-  postPmDesignRequestsUpdate
+  postPmDesignRequestsUpdate,
+  getPmDesignRecordsDetail,
+  postPmDesignRecordNew
 } from "@/api/design";
 import { ElMessage } from "element-plus";
 import { onMounted, ref } from "vue";
@@ -65,11 +67,21 @@ const taskDetail = ref(
     description: ""
   }
 );
+const recordDetail = ref({
+  // content: "",
+  // createdAt: "",
+  // descriptionExt: "",
+  // endTime: "",
+  // id: null,
+  // requestId: null,
+  // startTime: "",
+  // userId: null,
+  // userName: ""
+});
 
 //#region 请求相关
 const fetchTaskDetail = () => {
   if (!requestId) {
-    ElMessage.warning("暂无任务详情");
     return;
   }
   getPmDesignRequestsDetail({
@@ -112,11 +124,45 @@ const fetchTaskDetail = () => {
 
         // console.log("任务详情:", taskDetail.value);
       } else {
-        ElMessage.error("获取任务详情失败:" + res?.message);
+        ElMessage.error("获取任务详情失败:" + res?.msg);
       }
     })
     .catch(error => {
       ElMessage.error("获取任务详情失败:" + error.message);
+    });
+};
+
+const fetchRecordsDetail = () => {
+  if (!requestId) {
+    return;
+  }
+  getPmDesignRecordsDetail({
+    requestId: requestId
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取任务记录:", res);
+        if (res?.data && res?.data?.length > 0) {
+          const detail = res?.data?.[res?.data?.length - 1];
+          // console.log("任务记录:", detail);
+          recordDetail.value = {
+            content: detail.content,
+            createdAt: detail.createdAt,
+            descriptionExt: JSON.parse(detail.descriptionExt || "{}"),
+            endTime: detail.endTime,
+            id: detail.id,
+            requestId: detail.requestId,
+            startTime: detail.startTime,
+            userId: detail.userId,
+            userName: detail.userName
+          };
+        }
+      } else {
+        ElMessage.error("获取任务记录失败:" + res?.msg);
+      }
+    })
+    .catch(error => {
+      ElMessage.error("获取任务记录失败:" + error.message);
     });
 };
 
@@ -130,7 +176,7 @@ const fetchUpdateTaskDetail = (data: any) => {
         ElMessage.success("更新任务详情成功");
         fetchTaskDetail();
       } else {
-        ElMessage.error("更新任务详情失败:" + res?.message);
+        ElMessage.error("更新任务详情失败:" + res?.msg);
       }
     })
     .catch(error => {
@@ -138,8 +184,27 @@ const fetchUpdateTaskDetail = (data: any) => {
     });
 };
 
+const fetchNewRecordDetail = (data: any, callback?: () => void) => {
+  postPmDesignRecordNew({
+    ...data
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        ElMessage.success("创建任务记录成功");
+        // callback?.();
+        fetchRecordsDetail();
+      } else {
+        ElMessage.error("创建任务记录失败:" + res?.msg);
+      }
+    })
+    .catch(error => {
+      ElMessage.error("创建任务记录失败:" + error.message);
+    });
+};
+
 onMounted(() => {
   fetchTaskDetail();
+  fetchRecordsDetail();
 });
 </script>
 
@@ -157,7 +222,10 @@ onMounted(() => {
             <!-- Info Cards Grid -->
             <div class="grid gap-6 md:grid-cols-2">
               <BasicInfoCard :info="taskDetail.basicInfo" />
-              <WorkInfoCard :info="taskDetail.workInfo" />
+              <WorkInfoCard
+                :info="taskDetail.workInfo"
+                :recordDetail="recordDetail"
+              />
               <DescriptionCard
                 :description="taskDetail.description"
                 class="md:col-span-2"
@@ -165,14 +233,19 @@ onMounted(() => {
             </div>
 
             <!-- Tabs Section -->
-            <ModuleTabs />
+            <ModuleTabs
+              :recordDetail="recordDetail"
+              :newRecordFn="fetchNewRecordDetail"
+            />
           </div>
 
           <!-- Right Column - Task Management -->
           <div>
             <TaskManagementCard
               :taskDetail="taskDetail"
+              :recordDetail="recordDetail"
               :updateFn="fetchUpdateTaskDetail"
+              :newRecordFn="fetchNewRecordDetail"
             />
           </div>
         </div>
@@ -181,7 +254,7 @@ onMounted(() => {
 
     <div v-else>
       <div class="text-center py-12">
-        <p class="text-gray-500 text-lg">暂无任务详情</p>
+        <p class="text-gray-500 text-lg">暂无任务详情，请从需求看板查看</p>
       </div>
     </div>
   </div>

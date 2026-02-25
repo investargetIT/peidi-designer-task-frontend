@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, watch } from "vue";
 import { Upload } from "@element-plus/icons-vue";
 import RiChat4Line from "~icons/ri/chat-4-line";
 import LucideSend from "~icons/lucide/send";
+import { storageLocal } from "@pureadmin/utils";
+
+const USER_INFO: any = storageLocal().getItem("dataSource");
+
+const props = defineProps<{
+  recordDetail: any;
+  newRecordFn: (data: any, callback?: () => void) => void;
+}>();
 
 interface LogItem {
   id: number;
@@ -13,50 +21,70 @@ interface LogItem {
 }
 
 const notes = ref("");
-const logList = reactive<LogItem[]>([
-  {
-    id: 1,
-    type: "message",
-    user: "陈经理",
-    content: "11",
-    timestamp: "2026/2/5 15:39:03"
-  },
-  {
-    id: 2,
-    type: "upload",
-    user: "陈经理",
-    content: "上传了 1 个文件：壁纸.png",
-    timestamp: "2026/2/5 15:22:43"
-  },
-  {
-    id: 3,
-    type: "message",
-    user: "陈经理",
-    content: "11",
-    timestamp: "2026/2/5 15:22:31"
-  },
-  {
-    id: 4,
-    type: "message",
-    user: "陈经理",
-    content: "11",
-    timestamp: "2026/2/5 15:22:29"
-  }
+const logList = ref<LogItem[]>([
+  // {
+  //   id: 1,
+  //   type: "message",
+  //   user: "陈经理",
+  //   content: "11",
+  //   timestamp: "2026/2/5 15:39:03"
+  // },
+  // {
+  //   id: 2,
+  //   type: "upload",
+  //   user: "陈经理",
+  //   content: "上传了 1 个文件：壁纸.png",
+  //   timestamp: "2026/2/5 15:22:43"
+  // },
+  // {
+  //   id: 3,
+  //   type: "message",
+  //   user: "陈经理",
+  //   content: "11",
+  //   timestamp: "2026/2/5 15:22:31"
+  // },
+  // {
+  //   id: 4,
+  //   type: "message",
+  //   user: "陈经理",
+  //   content: "11",
+  //   timestamp: "2026/2/5 15:22:29"
+  // }
 ]);
 
 const addNote = () => {
   if (notes.value.trim()) {
     const newLog: LogItem = {
-      id: logList.length + 1,
+      id: logList.value.length + 1,
       type: "message",
-      user: "当前用户",
+      user: USER_INFO?.username || "",
       content: notes.value,
       timestamp: new Date().toLocaleString("zh-CN")
     };
-    logList.unshift(newLog);
-    notes.value = "";
+    const newLogList = [...logList.value, newLog];
+    props.newRecordFn(
+      {
+        ...props.recordDetail,
+        descriptionExt: JSON.stringify({
+          ...props.recordDetail.descriptionExt,
+          logList: newLogList
+        })
+      },
+      () => {
+        notes.value = "";
+      }
+    );
   }
 };
+
+watch(
+  () => props.recordDetail,
+  newValue => {
+    if (newValue.descriptionExt?.logList) {
+      logList.value = newValue.descriptionExt?.logList;
+    }
+  }
+);
 </script>
 
 <template>

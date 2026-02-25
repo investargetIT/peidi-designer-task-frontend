@@ -6,12 +6,14 @@ import {
   getPmDesignCategoryPage,
   postPmDesignAllocationCheck,
   postPmDesignRequestsNew,
-  postPmDesignRequestsResolve
+  postPmDesignRequestsResolve,
+  postPmDesignRecordNew
 } from "@/api/design";
 import { storageLocal } from "@pureadmin/utils";
 import { ElMessage } from "element-plus";
 import ErrorDialog from "./components/resultDialog/error.vue";
 import ResultDialog from "./components/resultDialog/index.vue";
+import dayjs from "dayjs";
 
 const USER_INFO: any = storageLocal().getItem("dataSource");
 
@@ -164,7 +166,27 @@ const fetchAddDesignTask = (
     .then((res: any) => {
       if (res?.code === 200) {
         ElMessage.success("添加设计需求成功");
-        callback?.(res.data?.requestId || null);
+        const requestId = res.data?.requestId || null;
+        // 创建任务记录
+        postPmDesignRecordNew({
+          requestId: requestId,
+          createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+          startTime: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+          endTime: null,
+          userId: USER_INFO?.id || null,
+          userName: USER_INFO?.username || null
+        })
+          .then((res: any) => {
+            if (res?.code === 200) {
+              // ElMessage.success("创建任务记录成功");
+            } else {
+              ElMessage.error("创建任务记录失败:" + res?.msg);
+            }
+            callback?.(requestId);
+          })
+          .catch((error: any) => {
+            ElMessage.error("创建任务记录失败:" + error?.message);
+          });
       } else {
         ElMessage.error("添加设计需求失败:" + res?.msg);
       }

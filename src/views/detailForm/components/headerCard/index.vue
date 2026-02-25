@@ -28,7 +28,7 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
           {{ props.taskDetail.basicInfo.subType }}
         </p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2" v-if="false">
         <el-button type="primary" plain size="small">
           <template #icon>
             <svg

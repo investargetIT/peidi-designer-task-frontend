@@ -5,7 +5,9 @@ import BiClock from "~icons/bi/clock";
 
 const props = defineProps<{
   taskDetail: any;
+  recordDetail: any;
   updateFn: (data: any) => void;
+  newRecordFn: (data: any, callback?: () => void) => void;
 }>();
 
 const status = ref();
@@ -35,20 +37,28 @@ const getCurrentStatusColor = () => {
 const handleSave = () => {
   // 保存逻辑
   if (props.taskDetail?.id) {
+    // console.log("更新任务", props.taskDetail, props.recordDetail);
     props.updateFn({
       id: props.taskDetail.id,
       estimatedHours: estimatedHours.value,
       status: status.value
     });
+    props.newRecordFn({
+      ...props.recordDetail,
+      descriptionExt: JSON.stringify({
+        ...props.recordDetail.descriptionExt,
+        actualHours: actualHours.value
+      })
+    });
   }
 };
 
 watch(
-  () => props.taskDetail,
-  newVal => {
-    estimatedHours.value = newVal.workInfo.estimatedHours;
-    actualHours.value = newVal.workInfo.actualHours;
-    status.value = newVal.basicInfo.statusSource;
+  () => [props.taskDetail, props.recordDetail],
+  ([taskDetail, recordDetail]) => {
+    estimatedHours.value = taskDetail.workInfo.estimatedHours;
+    actualHours.value = recordDetail.descriptionExt?.actualHours || 0;
+    status.value = taskDetail.basicInfo.statusSource;
   },
   {
     immediate: true,
@@ -68,7 +78,7 @@ watch(
       </h3>
     </div>
 
-    <div class="px-6 space-y-2">
+    <div class="px-6 space-y-2" v-if="false">
       <el-button type="primary" class="w-full" v-if="showStartButton">
         <template #icon>
           <svg
@@ -202,14 +212,11 @@ watch(
       <div class="p-3 bg-gray-100 rounded-lg space-y-2 text-sm">
         <div class="flex justify-between">
           <span class="text-gray-600">开始时间</span>
-          <span>{{ props.taskDetail.workInfo.startTime }}</span>
+          <span>{{ props.recordDetail.startTime }}</span>
         </div>
-        <div
-          v-if="props.taskDetail.workInfo.endTime"
-          class="flex justify-between"
-        >
+        <div v-if="props.recordDetail.endTime" class="flex justify-between">
           <span class="text-gray-600">完成时间</span>
-          <span>{{ props.taskDetail.workInfo.endTime }}</span>
+          <span>{{ props.recordDetail.endTime }}</span>
         </div>
       </div>
 

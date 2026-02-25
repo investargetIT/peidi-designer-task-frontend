@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import uploadSection from "./uploadSection.vue";
 import notesSection from "./notesSection.vue";
 
+const props = defineProps<{
+  recordDetail: any;
+  newRecordFn: (data: any, callback?: () => void) => void;
+}>();
+
 const activeTab = ref("uploads");
 
-const tabs = [
+const tabs = ref([
   { id: "uploads", label: "作品上传", count: 0 },
   { id: "logs", label: "任务日志", count: 0 }
-];
+]);
 
 const handleTabChange = (tabId: string) => {
   activeTab.value = tabId;
 };
+
+watch(
+  () => props.recordDetail,
+  newValue => {
+    tabs.value[1].count = newValue.descriptionExt?.logList?.length || 0;
+  }
+);
 </script>
 
 <template>
@@ -72,7 +84,10 @@ const handleTabChange = (tabId: string) => {
         data-slot="tabs-content"
         class="pd-detailForm-moduleTabs__panel"
       >
-        <notesSection />
+        <notesSection
+          :recordDetail="props.recordDetail"
+          :newRecordFn="props.newRecordFn"
+        />
       </div>
     </div>
   </div>

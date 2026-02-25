@@ -26,12 +26,12 @@ const ENUM_MAP = {
   },
   // status - 类型 对应表
   TASK_STATUS_MAP: {
-    DRAFT: "info",
+    DRAFT: "default",
     PENDING: "warning",
     IN_PROGRESS: "success",
     COMPLETED: "default",
     OUTSOURCED: "info",
-    RUSH: "default"
+    RUSH: "warning"
   }
 };
 
@@ -171,6 +171,15 @@ const statusItems = ref<StatusItem[]>([
   }
 ]);
 
+// 创建反向映射缓存，提升性能
+const STATUS_LABEL_TO_KEY_MAP = computed(() => {
+  const map: Record<string, string> = {};
+  Object.entries(DESIGN_ENUM.TASK_STATUS).forEach(([key, label]) => {
+    map[label] = key;
+  });
+  return map;
+});
+
 const tabActive = ref("ALL");
 
 // 修改计算属性：确保始终返回所有四个状态项，即使任务为空
@@ -185,16 +194,13 @@ const filteredStatusItems = computed<StatusItem[]>(() => {
   }
 
   // 其他选项卡：返回所有状态项，但更新任务列表为筛选后的结果
-  const targetType = ENUM_MAP.TASK_STATUS_MAP[tabActive.value];
-  if (!targetType) return statusItems.value;
-
   return statusItems.value.map(status => {
-    // 筛选出匹配的任务
+    // 使用预构建的反向映射进行高效筛选
     const filteredTasks = status.tasks.filter(
-      task => task.status.type === targetType
+      task =>
+        STATUS_LABEL_TO_KEY_MAP.value[task.status.label] === tabActive.value
     );
 
-    // 返回状态项，更新任务列表和计数（即使为空也返回）
     return {
       ...status,
       tasks: filteredTasks,
@@ -213,13 +219,10 @@ const getTabCount = (tabValue: string): number => {
     );
   }
 
-  // 其他选项卡：根据任务状态筛选
-  const targetType = ENUM_MAP.TASK_STATUS_MAP[tabValue];
-  if (!targetType) return 0;
-
+  // 使用反向映射进行高效计数
   return statusItems.value.reduce((total, status) => {
     const count = status.tasks.filter(
-      task => task.status.type === targetType
+      task => STATUS_LABEL_TO_KEY_MAP.value[task.status.label] === tabValue
     ).length;
     return total + count;
   }, 0);

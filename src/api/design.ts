@@ -231,3 +231,31 @@ export const postPmDesignRequestsResolve = (data: {
   );
 };
 //#endregion
+
+//#region 新增记录
+export interface DesignRecordNew {
+  content?: string;
+  createdAt?: string;
+  descriptionExt?: string;
+  endTime?: string;
+  id?: number;
+  requestId?: number | string;
+  startTime?: string;
+  userId?: number;
+  userName?: string;
+}
+export const postPmDesignRecordNew = (data: DesignRecordNew) => {
+  return http.request("post", commonUrlApi(`/pm/design/record/new`), {
+    data
+  });
+};
+//#endregion
+
+/** 获取记录 */
+export const getPmDesignRecordsDetail = (params: { requestId: string }) => {
+  return http.request(
+    "get",
+    commonUrlApi(`/pm/design/record/${params.requestId}`),
+    {}
+  );
+};

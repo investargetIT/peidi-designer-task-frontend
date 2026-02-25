@@ -16,14 +16,14 @@ interface UploadFile {
 }
 
 const uploadedFiles = reactive<UploadFile[]>([
-  {
-    id: 1,
-    name: "壁纸.png",
-    size: "2.2 MB",
-    type: "image/png",
-    url: "",
-    uploadTime: "2026/2/5 15:22:43"
-  }
+  // {
+  //   id: 1,
+  //   name: "壁纸.png",
+  //   size: "2.2 MB",
+  //   type: "image/png",
+  //   url: "",
+  //   uploadTime: "2026/2/5 15:22:43"
+  // }
 ]);
 
 // 修改处理函数，正确处理 Element Plus upload 组件的回调参数
