@@ -2,23 +2,23 @@ const Layout = () => import("@/layout/index.vue");
 
 export default [
   {
-    path: "/dashboard",
-    name: "DashboardLayout",
-    redirect: "/dashboard/index",
+    path: "/manageBoard",
+    name: "ManageBoardLayout",
+    redirect: "/manageBoard/index",
     component: Layout,
     meta: {
       icon: "tdesign/app",
-      title: "需求看板",
+      title: "管理看板",
       showLink: true,
       rank: 11
     },
     children: [
       {
-        path: "/dashboard/index",
-        name: "Dashboard",
-        component: () => import("@/views/dashboard/index.vue"),
+        path: "/manageBoard/index",
+        name: "管理看板",
+        component: () => import("@/views/manageBoard/index.vue"),
         meta: {
-          title: "需求看板",
+          title: "管理看板",
           icon: "tdesign/app"
         }
       }
@@ -89,6 +89,29 @@ export default [
         meta: {
           title: "任务详情",
           icon: "ix/details"
+        }
+      }
+    ]
+  },
+  {
+    path: "/detailTable",
+    name: "DetailTableLayout",
+    redirect: "/detailTable/index",
+    component: Layout,
+    meta: {
+      icon: "material-symbols/list-rounded",
+      title: "任务列表",
+      showLink: true,
+      rank: 15
+    },
+    children: [
+      {
+        path: "/detailTable/index",
+        name: "任务列表",
+        component: () => import("@/views/detailTable/index.vue"),
+        meta: {
+          title: "任务列表",
+          icon: "material-symbols/list-rounded"
         }
       }
     ]

@@ -6,6 +6,11 @@ import { getPmDesignersPage } from "@/api/design";
 import { onMounted, ref } from "vue";
 
 const statisticsInfo = ref({
+  onDutyPeople: 0,
+  primaryPeople: 0,
+  supportFullPeople: 0,
+  primaryTotalHours: 0,
+  supportTotalHours: 0,
   totalHours: 0,
   maxHours: 0
 });
@@ -104,11 +109,26 @@ const fetchDesignerWorkloads = () => {
         // 数据处理
         const designersTemp = [];
         const statisticsInfoTemp = {
+          onDutyPeople: 0,
+          primaryPeople: 0,
+          supportFullPeople: 0,
+          primaryTotalHours: 0,
+          supportTotalHours: 0,
           totalHours: 0,
           maxHours: 0
         };
 
         records.forEach(item => {
+          statisticsInfoTemp.onDutyPeople++;
+          if (item.ongoingPrimaryProjects > 0) {
+            statisticsInfoTemp.primaryPeople++;
+          }
+          if (item.ongoingSupportProjects >= 44) {
+            statisticsInfoTemp.supportFullPeople++;
+          }
+
+          statisticsInfoTemp.primaryTotalHours += item.primaryUsed;
+          statisticsInfoTemp.supportTotalHours += item.supportUsed;
           statisticsInfoTemp.totalHours += item.totalUsed;
           statisticsInfoTemp.maxHours += item.totalLimit;
 

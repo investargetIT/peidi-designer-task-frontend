@@ -28,8 +28,8 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
           {{ props.taskDetail.basicInfo.subType }}
         </p>
       </div>
-      <div class="flex gap-2" v-if="false">
-        <el-button type="primary" plain size="small">
+      <div class="flex gap-2">
+        <el-button type="primary" plain size="small" v-if="false">
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -73,7 +73,7 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
               <line x1="14" x2="14" y1="11" y2="17"></line>
             </svg>
           </template>
-          删除
+          作废
         </el-button>
       </div>
     </div>

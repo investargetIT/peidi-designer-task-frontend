@@ -7,10 +7,12 @@ import {
   postPmDesignAllocationCheck,
   postPmDesignRequestsNew,
   postPmDesignRequestsResolve,
-  postPmDesignRecordNew
+  postPmDesignRecordNew,
+  postPmDesignRequestsAttentionNew,
+  type DesignRequestsAttentionNewItem
 } from "@/api/design";
 import { storageLocal } from "@pureadmin/utils";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElNotification } from "element-plus";
 import ErrorDialog from "./components/resultDialog/error.vue";
 import ResultDialog from "./components/resultDialog/index.vue";
 import dayjs from "dayjs";
@@ -83,35 +85,46 @@ const baseInfoConfig = ref({
   usageScenarios: [
     {
       value: "S1",
-      label: "S1 销售转化 （直接影响销售、转化、GMV 的设计）"
+      label: "S1 销售转化 （直接影响销售、转化、GMV 的设计）",
+      description: "对外销售与转化场景"
     },
     {
       value: "S2",
-      label: "S2 对外品牌 （影响品牌形象、认知，但不直接转化）"
+      label: "S2 对外品牌 （影响品牌形象、认知，但不直接转化）",
+      description: "品牌对外传播场景"
     },
     {
       value: "S3",
-      label: "S3 内部支持 （支持公司内部运作，不直接面对用户）"
+      label: "S3 内部支持 （支持公司内部运作，不直接面对用户）",
+      description: "内部运营/组织支持场景"
     },
-    { value: "S4", label: "S4 长期资产 （偏体系、标准、长期使用）" }
+    {
+      value: "S4",
+      label: "S4 长期资产 （偏体系、标准、长期使用）",
+      description: "长期资产建设场景"
+    }
   ],
   // 只传I1~I4
   impactRanges: [
     {
       value: "I1",
-      label: "I1 单一 （仅影响一个具体内容或一次性使用场景，不复用、不扩散）"
+      label: "I1 单一 （仅影响一个具体内容或一次性使用场景，不复用、不扩散）",
+      description: "影响单一内容/单一渠道"
     },
     {
       value: "I2",
-      label: "I2 项目 （影响一个完整项目或活动周期，但范围有限）"
+      label: "I2 项目 （影响一个完整项目或活动周期，但范围有限）",
+      description: "影响一个项目/一个渠道线"
     },
     {
       value: "I3",
-      label: "I3 多项目 （影响多个项目、多个渠道或多个产品，存在复用或联动）"
+      label: "I3 多项目 （影响多个项目、多个渠道或多个产品，存在复用或联动）",
+      description: "影响多个渠道/多个项目"
     },
     {
       value: "I4",
-      label: "I4 公司级 （影响公司或品牌整体形象，具有长期、系统性影响）"
+      label: "I4 公司级 （影响公司或品牌整体形象，具有长期、系统性影响）",
+      description: "影响公司级/品牌级"
     }
   ]
 });
@@ -154,7 +167,7 @@ const fetchCheckAllocation = (
 };
 
 const fetchAddDesignTask = (
-  params: DesignTaskCreateParams,
+  params: DesignTaskCreateParams & { attentionUsers: any },
   callback?: (requestId: number | string | null) => void
 ) => {
   // console.log("添加设计需求:", params);
@@ -166,33 +179,50 @@ const fetchAddDesignTask = (
     .then((res: any) => {
       if (res?.code === 200) {
         ElMessage.success("添加设计需求成功");
-        const requestId = res.data?.requestId || null;
-        // 创建任务记录
-        postPmDesignRecordNew({
-          requestId: requestId,
-          createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
-          startTime: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
-          endTime: null,
-          userId: USER_INFO?.id || null,
-          userName: USER_INFO?.username || null
-        })
-          .then((res: any) => {
-            if (res?.code === 200) {
-              // ElMessage.success("创建任务记录成功");
-            } else {
-              ElMessage.error("创建任务记录失败:" + res?.msg);
-            }
-            callback?.(requestId);
-          })
-          .catch((error: any) => {
-            ElMessage.error("创建任务记录失败:" + error?.message);
-          });
+        callback?.(res.data?.requestId || null);
+
+        // 添加需求关注
+        if (res.data?.requestId && params.attentionUsers) {
+          const fetchAddAttentionParams = params.attentionUsers
+            .split(",")
+            .map(item => {
+              return {
+                requestId: res.data?.requestId,
+                dingId: item
+              };
+            });
+          fetchAddAttention(fetchAddAttentionParams);
+        }
       } else {
         ElMessage.error("添加设计需求失败:" + res?.msg);
       }
     })
     .catch((error: any) => {
       ElMessage.error("添加设计需求失败:" + error?.message);
+    });
+};
+
+// 增加需求关注
+const fetchAddAttention = (
+  params: Array<DesignRequestsAttentionNewItem>,
+  callback?: () => void
+) => {
+  // console.log("增加需求关注:", params);
+  // return;
+  return postPmDesignRequestsAttentionNew(params)
+    .then((res: any) => {
+      if (res?.code === 200) {
+        ElNotification({
+          message: "增加需求关注成功",
+          type: "success"
+        });
+        callback?.();
+      } else {
+        ElMessage.error("增加需求关注失败:" + res?.msg);
+      }
+    })
+    .catch((error: any) => {
+      ElMessage.error("增加需求关注失败:" + error?.message);
     });
 };
 
@@ -205,14 +235,17 @@ const fetchRushDesignTask = (params: any, callback?: () => void) => {
   })
     .then((res: any) => {
       if (res?.code === 200) {
-        ElMessage.success("插单成功");
+        ElNotification({
+          message: "插单/启用外包成功",
+          type: "success"
+        });
         callback?.();
       } else {
-        ElMessage.error("插单失败:" + res?.msg);
+        ElMessage.error("插单/启用外包失败:" + res?.msg);
       }
     })
     .catch((error: any) => {
-      ElMessage.error("插单失败:" + error?.message);
+      ElMessage.error("插单/启用外包失败:" + error?.message);
     });
 };
 //#endregion
@@ -242,7 +275,8 @@ const initBaseInfoConfig = () => {
       const firstCategory = item.category;
       const secondItem = {
         name: item.taskType,
-        description: `${item.standardPeriod}天·${item.remark}`
+        description: `${item.standardPeriod}天·${item.remark}`,
+        standardPeriod: item.standardPeriod
       };
 
       if (categoryMap.has(firstCategory)) {
