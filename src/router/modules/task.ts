@@ -92,28 +92,28 @@ export default [
         }
       }
     ]
-  },
-  {
-    path: "/detailForm",
-    name: "DetailFormLayout",
-    redirect: "/detailForm/index",
-    component: Layout,
-    meta: {
-      icon: "ix/details",
-      title: "任务详情",
-      showLink: true,
-      rank: 15
-    },
-    children: [
-      {
-        path: "/detailForm/index",
-        name: "任务详情",
-        component: () => import("@/views/detailForm/index.vue"),
-        meta: {
-          title: "任务详情",
-          icon: "ix/details"
-        }
-      }
-    ]
   }
+  // {
+  //   path: "/detailForm",
+  //   name: "DetailFormLayout",
+  //   redirect: "/detailForm/index",
+  //   component: Layout,
+  //   meta: {
+  //     icon: "ix/details",
+  //     title: "任务详情",
+  //     showLink: true,
+  //     rank: 15
+  //   },
+  //   children: [
+  //     {
+  //       path: "/detailForm/index",
+  //       name: "任务详情",
+  //       component: () => import("@/views/detailForm/index.vue"),
+  //       meta: {
+  //         title: "任务详情",
+  //         icon: "ix/details"
+  //       }
+  //     }
+  //   ]
+  // }
 ] satisfies Array<RouteConfigsTable>;

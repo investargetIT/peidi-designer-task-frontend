@@ -13,11 +13,15 @@ import {
   postPmDesignRecordNew
 } from "@/api/design";
 import { ElMessage } from "element-plus";
-import { onMounted, ref } from "vue";
-import { DESIGN_ENUM } from "@/constants/design";
+import { onMounted, ref, watch } from "vue";
+import { DESIGN_ENUM, DESIGN_ENUM_OPTIONS } from "@/constants/design";
 
-const route = useRoute();
-const requestId: string = route.query.requestId as string;
+const props = defineProps({
+  resquestId: {
+    type: String,
+    required: true
+  }
+});
 
 const taskDetail = ref(
   // {
@@ -81,15 +85,15 @@ const recordDetail = ref({
 
 //#region 请求相关
 const fetchTaskDetail = () => {
-  if (!requestId) {
+  if (!props.resquestId) {
     return;
   }
   getPmDesignRequestsDetail({
-    requestId: requestId
+    requestId: props.resquestId
   })
     .then((res: any) => {
       if (res?.code === 200) {
-        // console.log("获取任务详情:", res);
+        console.log("获取任务详情:", res);
         const resData = res?.data || {};
 
         taskDetail.value = {
@@ -100,24 +104,30 @@ const fetchTaskDetail = () => {
             subType: resData.taskType,
             deadline: resData.deadline,
             usageScenario:
-              resData.usageScenario +
-              " " +
-              DESIGN_ENUM.USAGE_SCENARIO_MAP[resData.usageScenario],
+              DESIGN_ENUM_OPTIONS.USAGE_SCENARIO_MAP.find(
+                item => item.value === resData.usageScenario
+              )?.label || resData.usageScenario,
             impactRange:
-              resData.impactRange +
-              " " +
-              DESIGN_ENUM.IMPACT_RANGE_MAP[resData.impactRange],
+              DESIGN_ENUM_OPTIONS.IMPACT_RANGE_MAP.find(
+                item => item.value === resData.impactRange
+              )?.label || resData.impactRange,
             submitter: resData.createUserName,
-            priority: DESIGN_ENUM.PRIORITY[resData.priority],
-            status: DESIGN_ENUM.TASK_STATUS[resData.status],
+            priority:
+              DESIGN_ENUM_OPTIONS.PRIORITY.find(
+                item => item.value === resData.priority
+              )?.label || resData.priority,
+            status:
+              DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
+                item => item.value === resData.status
+              )?.label || resData.status,
             statusSource: resData.status
           },
           workInfo: {
             assignee: resData.assignedToName,
             estimatedHours: resData.estimatedHours,
-            actualHours: 0,
-            startTime: "2000/1/1 00:00:00",
-            endTime: "2000/1/1 00:00:00"
+            actualHours: resData.actualHours || 0,
+            startTime: resData.startAt,
+            endTime: resData.endAt
           },
           description: resData.description
         };
@@ -133,11 +143,11 @@ const fetchTaskDetail = () => {
 };
 
 const fetchRecordsDetail = () => {
-  if (!requestId) {
+  if (!props.resquestId) {
     return;
   }
   getPmDesignRecordsDetail({
-    requestId: requestId
+    requestId: props.resquestId
   })
     .then((res: any) => {
       if (res?.code === 200) {
@@ -202,15 +212,23 @@ const fetchNewRecordDetail = (data: any, callback?: () => void) => {
     });
 };
 
-onMounted(() => {
-  fetchTaskDetail();
-  fetchRecordsDetail();
-});
+watch(
+  () => props.resquestId,
+  (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+      fetchTaskDetail();
+      fetchRecordsDetail();
+    }
+  },
+  {
+    immediate: true
+  }
+);
 </script>
 
 <template>
   <div>
-    <div v-if="requestId">
+    <div v-if="props.resquestId">
       <div>
         <HeaderCard :taskDetail="taskDetail" />
       </div>
@@ -222,10 +240,7 @@ onMounted(() => {
             <!-- Info Cards Grid -->
             <div class="grid gap-6 md:grid-cols-2">
               <BasicInfoCard :info="taskDetail.basicInfo" />
-              <WorkInfoCard
-                :info="taskDetail.workInfo"
-                :recordDetail="recordDetail"
-              />
+              <WorkInfoCard :info="taskDetail.workInfo" />
               <DescriptionCard
                 :description="taskDetail.description"
                 class="md:col-span-2"
@@ -254,7 +269,7 @@ onMounted(() => {
 
     <div v-else>
       <div class="text-center py-12">
-        <p class="text-gray-500 text-lg">暂无任务详情，请从需求看板查看</p>
+        <p class="text-gray-500 text-lg">暂无任务详情，请从任务列表查看</p>
       </div>
     </div>
   </div>
