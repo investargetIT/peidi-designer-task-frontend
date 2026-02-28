@@ -246,7 +246,7 @@ onMounted(() => {
         <!-- Two Column Layout -->
         <el-row :gutter="24">
           <!-- Left Column -->
-          <el-col :span="8">
+          <el-col :xs="24" :sm="24" :lg="8" class="mb-2">
             <!-- Design Type Selection -->
             <el-card shadow="never" class="border mb-6">
               <div
@@ -363,7 +363,7 @@ onMounted(() => {
           </el-col>
 
           <!-- Middle Column -->
-          <el-col :span="8">
+          <el-col :xs="24" :sm="24" :lg="8" class="mb-2">
             <el-card shadow="never" class="border">
               <div
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4"
@@ -430,7 +430,7 @@ onMounted(() => {
           </el-col>
 
           <!-- Right Column -->
-          <el-col :span="8">
+          <el-col :xs="24" :sm="24" :lg="8" class="mb-2">
             <el-card shadow="never" class="border">
               <div
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4"

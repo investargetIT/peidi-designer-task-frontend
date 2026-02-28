@@ -123,13 +123,13 @@ const fetchDesignerWorkloads = () => {
           if (item.ongoingPrimaryProjects > 0) {
             statisticsInfoTemp.primaryPeople++;
           }
-          if (item.ongoingSupportProjects >= 44) {
+          if (item.isSupportFull) {
             statisticsInfoTemp.supportFullPeople++;
           }
 
-          statisticsInfoTemp.primaryTotalHours += item.primaryUsed;
-          statisticsInfoTemp.supportTotalHours += item.supportUsed;
-          statisticsInfoTemp.totalHours += item.totalUsed;
+          statisticsInfoTemp.primaryTotalHours += item.primaryHours;
+          statisticsInfoTemp.supportTotalHours += item.supportHours;
+          statisticsInfoTemp.totalHours += item.totalHours;
           statisticsInfoTemp.maxHours += item.totalLimit;
 
           designersTemp.push({
@@ -153,7 +153,7 @@ const fetchDesignerWorkloads = () => {
             stats: [
               { value: item.ongoingPrimaryProjects, label: "主职责任务" },
               { value: item.ongoingSupportProjects, label: "支援任务" },
-              { value: `${item.totalUsed}h`, label: "本月总工时" }
+              { value: `${item.totalHours}h`, label: "本月总工时" }
             ]
           });
         });

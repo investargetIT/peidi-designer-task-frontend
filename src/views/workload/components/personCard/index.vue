@@ -31,6 +31,33 @@ const getIconComponent = (title: string) => {
   }
   return "";
 };
+
+// 新增：计算总体工时进度条的相关数据
+const getTotalWorkloadData = () => {
+  const primaryWorkload = props.designer.workloads.find(w =>
+    w.title.includes("主职能")
+  );
+  const supportWorkload = props.designer.workloads.find(w =>
+    w.title.includes("支援")
+  );
+
+  if (!primaryWorkload || !supportWorkload) return null;
+
+  const primaryCurrent = primaryWorkload.current || 0;
+  const supportCurrent = supportWorkload.current || 0;
+  const totalCurrent = primaryCurrent + supportCurrent;
+  const totalMax = (primaryWorkload.max || 0) + (supportWorkload.max || 0);
+
+  return {
+    primaryCurrent,
+    supportCurrent,
+    totalCurrent,
+    totalMax,
+    primaryPercentage: Math.round((primaryCurrent / totalMax) * 100),
+    supportPercentage: Math.round((supportCurrent / totalMax) * 100),
+    totalPercentage: Math.round((totalCurrent / totalMax) * 100)
+  };
+};
 </script>
 
 <template>
@@ -68,6 +95,68 @@ const getIconComponent = (title: string) => {
           >
             {{ skill.type === "primary" ? "主:" : "援:" }} {{ skill.label }}
           </span>
+        </div>
+      </div>
+
+      <!-- 新增：总体工时进度条 -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="flex items-center gap-1.5 text-gray-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-3.5 w-3.5"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            总体工时 ({{ getTotalWorkloadData()?.primaryCurrent || 0 }}h |
+            {{ getTotalWorkloadData()?.supportCurrent || 0 }}h)
+          </span>
+          <span class="font-medium">
+            {{ getTotalWorkloadData()?.totalCurrent || 0 }}h /
+            {{ getTotalWorkloadData()?.totalMax || 220 }}h
+          </span>
+        </div>
+
+        <div
+          class="relative w-full overflow-hidden rounded-full h-2 bg-gray-200"
+        >
+          <!-- 蓝色主职能工时部分 -->
+          <div
+            v-if="getTotalWorkloadData()"
+            class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-300"
+            :style="{ width: `${getTotalWorkloadData().primaryPercentage}%` }"
+          ></div>
+          <!-- 橙色支援工时部分 -->
+          <div
+            v-if="getTotalWorkloadData()"
+            class="absolute top-0 left-0 h-full bg-amber-500 transition-all duration-300"
+            :style="{
+              left: `${getTotalWorkloadData().primaryPercentage}%`,
+              width: `${getTotalWorkloadData().supportPercentage}%`
+            }"
+          ></div>
+        </div>
+
+        <div class="flex justify-between text-xs text-gray-600">
+          <span>
+            使用率: {{ getTotalWorkloadData()?.totalPercentage || 0 }}%
+          </span>
+          <span
+            >剩余:
+            {{
+              (getTotalWorkloadData()?.totalMax || 220) -
+              (getTotalWorkloadData()?.totalCurrent || 0)
+            }}h</span
+          >
         </div>
       </div>
 
