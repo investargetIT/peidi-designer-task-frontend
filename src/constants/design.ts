@@ -42,57 +42,70 @@ export const DESIGN_ENUM_OPTIONS = {
   PRIORITY: [
     {
       label: "低",
-      value: 1
+      value: 1,
+      colorClass: "bg-blue-200"
     },
     {
       label: "中",
-      value: 2
+      value: 2,
+      colorClass: "bg-yellow-300"
     },
     {
       label: "高",
-      value: 3
+      value: 3,
+      colorClass: "bg-orange-400"
     },
     {
       label: "极高",
-      value: 4
+      value: 4,
+      colorClass: "bg-red-500"
     }
   ],
   TASK_STATUS: [
     {
       label: "草稿",
-      value: "DRAFT"
+      value: "DRAFT",
+      colorClass: "bg-yellow-400"
     },
     {
       label: "待分配",
-      value: "PENDING"
-    },
-    {
-      label: "进行中",
-      value: "IN_PROGRESS"
-    },
-    {
-      label: "已完成",
-      value: "COMPLETED"
-    },
-    {
-      label: "已完成待审核",
-      value: "COMPLETED_REVIEW"
-    },
-    {
-      label: "已外包",
-      value: "OUTSOURCED"
-    },
-    {
-      label: "插单处理",
-      value: "RUSH"
+      value: "PENDING",
+      colorClass: "bg-blue-300"
     },
     {
       label: "待审核",
-      value: "REVIEW"
+      value: "REVIEW",
+      colorClass: "bg-blue-400"
+    },
+    {
+      label: "进行中",
+      value: "IN_PROGRESS",
+      colorClass: "bg-green-300"
+    },
+    {
+      label: "已外包",
+      value: "OUTSOURCED",
+      colorClass: "bg-purple-300"
+    },
+    {
+      label: "插单处理",
+      value: "RUSH",
+      colorClass: "bg-orange-400"
+    },
+    {
+      label: "已完成待审核",
+      value: "COMPLETED_REVIEW",
+      colorClass: "bg-indigo-300"
+    },
+    {
+      label: "已完成",
+      value: "COMPLETED",
+      colorClass: "bg-gray-300"
     },
     {
       label: "已关闭",
-      value: "CLOSE"
+      value: "CLOSE",
+      colorClass: "bg-red-400"
     }
   ],
   USAGE_SCENARIO_MAP: [

@@ -4,6 +4,7 @@ import PersonCard from "./components/personCard/index.vue";
 import InfoCard from "./components/infoCard/index.vue";
 import { getPmDesignersPage } from "@/api/design";
 import { onMounted, ref } from "vue";
+import dayjs from "dayjs";
 
 const statisticsInfo = ref({
   onDutyPeople: 0,
@@ -99,7 +100,14 @@ const designers = ref([
 const fetchDesignerWorkloads = () => {
   return getPmDesignersPage({
     pageNo: 1,
-    pageSize: 10e3
+    pageSize: 10e3,
+    searchStr: JSON.stringify({
+      searchName: "status",
+      searchType: "equals",
+      searchValue: '"active"'
+    }),
+    year: dayjs().year(),
+    month: dayjs().month() + 1
   })
     .then((res: any) => {
       if (res?.code === 200) {

@@ -248,6 +248,26 @@ const fetchRushDesignTask = (params: any, callback?: () => void) => {
       ElMessage.error("插单/启用外包失败:" + error?.message);
     });
 };
+
+const fetchNewRecordDetail = (data: any, callback?: () => void) => {
+  postPmDesignRecordNew({
+    ...data
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        ElNotification({
+          message: "创建任务记录成功",
+          type: "success"
+        });
+        callback?.();
+      } else {
+        ElMessage.error("创建任务记录失败:" + res?.msg);
+      }
+    })
+    .catch(error => {
+      ElMessage.error("创建任务记录失败:" + error.message);
+    });
+};
 //#endregion
 
 //#region 结果弹窗相关
@@ -341,6 +361,7 @@ onMounted(async () => {
         ref="errorDialogRef"
         :addFn="fetchAddDesignTask"
         :rushFn="fetchRushDesignTask"
+        :recordFn="fetchNewRecordDetail"
       />
     </div>
   </div>

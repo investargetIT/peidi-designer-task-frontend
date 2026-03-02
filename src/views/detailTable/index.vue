@@ -1,11 +1,36 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, FormInstance } from "element-plus";
-import { getPmDesignRequestsPage } from "@/api/design";
+import { getPmDesignersPage, getPmDesignRequestsPage } from "@/api/design";
 import dayjs from "dayjs";
 import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
 import BxDetail from "~icons/bx/detail";
 import DialogCard from "./components/dialogCard/index.vue";
+import { useRoute } from "vue-router"; // 引入 useRoute
+
+const route = useRoute(); // 使用 useRoute 获取当前路由信息
+
+// 获取 URL 查询参数并设置到搜索表单中
+const initSearchParamsFromUrl = () => {
+  const { priority, timePeriod } = route.query;
+
+  if (priority !== undefined) {
+    searchForm.priority = Number(priority);
+  }
+
+  if (timePeriod === "week") {
+    // 如果 timePeriod 是 week，则设置时间为本周
+    searchForm.createAtRange = [
+      dayjs().startOf("week").format("YYYY-MM-DD"),
+      dayjs().endOf("week").format("YYYY-MM-DD")
+    ];
+  }
+
+  // 如果两个参数都存在则触发搜索
+  if (priority !== undefined && timePeriod !== undefined) {
+    fetchDesignTaskList();
+  }
+};
 
 const detailTableData = ref([]);
 const pagination = ref({
@@ -15,8 +40,10 @@ const pagination = ref({
 });
 
 //#region 搜索相关
+// 负责人列表
+const designers = ref([]);
 const searchFormRef = ref<FormInstance>();
-const searchForm = reactive({
+const searchForm: any = reactive({
   createAtRange: [
     dayjs().startOf("month").format("YYYY-MM-DD"),
     dayjs().endOf("month").format("YYYY-MM-DD")
@@ -34,16 +61,16 @@ const formatSearchStr = () => {
       searchName: "createAt",
       searchType: "betweenStr",
       searchValue: [
-        dayjs(searchForm.createAtRange[0]).format("YYYY-MM-DD 00:00:00"),
-        dayjs(searchForm.createAtRange[1]).format("YYYY-MM-DD 23:59:59")
+        dayjs(searchForm.createAtRange[0]).format("YYYY-MM-DDT00:00:00"),
+        dayjs(searchForm.createAtRange[1]).format("YYYY-MM-DDT23:59:59")
       ].join(",")
     });
   }
   if (searchForm.assignedToName) {
     searchStr.push({
       searchName: "assignedToName",
-      searchType: "like",
-      searchValue: `${searchForm.assignedToName}`
+      searchType: "equals",
+      searchValue: `\"${searchForm.assignedToName}\"`
     });
   }
   if (searchForm.status) {
@@ -115,6 +142,34 @@ const fetchDesignTaskList = () => {
       ElMessage.error("获取需求列表失败:" + error.message);
     });
 };
+
+const fetchDesignerWorkloads = () => {
+  return getPmDesignersPage({
+    pageNo: 1,
+    pageSize: 10e3,
+    searchStr: JSON.stringify({
+      searchName: "status",
+      searchType: "equals",
+      searchValue: '"active"'
+    })
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取设计师工作负载:", res?.data?.records || []);
+
+        const records = res?.data?.records || [];
+        designers.value = records.map(item => ({
+          label: item.designerName,
+          value: item.userId
+        }));
+      } else {
+        console.error("获取设计师工作负载失败:", res?.msg);
+      }
+    })
+    .catch(error => {
+      console.error("获取设计师工作负载失败:", error.message);
+    });
+};
 //#endregion
 
 watch(
@@ -128,17 +183,6 @@ watch(
 );
 
 //#region 展示处理相关逻辑
-const STATUS_COLORS = {
-  DRAFT: "#909399", // 灰色
-  PENDING: "#E6A23C", // 橙色
-  IN_PROGRESS: "#409EFF", // 蓝色
-  COMPLETED: "#67C23A", // 绿色
-  COMPLETED_REVIEW: "#909399", // 灰色(原紫色改为灰色)
-  OUTSOURCED: "#E6A23C", // 橙色(原黄色改为橙色)
-  RUSH: "#F56C6C", // 红色
-  REVIEW: "#909399", // 灰色(原紫色改为灰色)
-  CLOSE: "#909399" // 灰色
-};
 // 处理需求状态展示
 const getStatusInfo = (status: string) => {
   const statusItem = DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
@@ -146,7 +190,7 @@ const getStatusInfo = (status: string) => {
   );
   return {
     text: statusItem?.label || status,
-    color: STATUS_COLORS[status as keyof typeof STATUS_COLORS] || "#909399"
+    color: statusItem?.colorClass
   };
 };
 // 处理优先级展示
@@ -168,6 +212,14 @@ const handleOpenDetailDialog = (id: string | number) => {
   }
 };
 //#endregion
+
+onMounted(() => {
+  fetchDesignerWorkloads();
+
+  nextTick(() => {
+    initSearchParamsFromUrl();
+  });
+});
 </script>
 
 <template>
@@ -193,11 +245,18 @@ const handleOpenDetailDialog = (id: string | number) => {
           />
         </el-form-item>
         <el-form-item label="负责人" prop="assignedToName">
-          <el-input
+          <el-select
             v-model="searchForm.assignedToName"
-            placeholder="请输入负责人名称"
+            placeholder="请选择负责人"
             clearable
-          />
+          >
+            <el-option
+              v-for="item in designers"
+              :key="item.value"
+              :label="item.label"
+              :value="item.label"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="需求状态" prop="status">
@@ -290,9 +349,7 @@ const handleOpenDetailDialog = (id: string | number) => {
           <template #default="scope">
             <div
               class="inline-block px-2 py-1 rounded text-[#0a0a0a] text-xs font-medium text-center min-w-[50px]"
-              :style="{
-                backgroundColor: getStatusInfo(scope.row.status).color + '45'
-              }"
+              :class="getStatusInfo(scope.row.status).color"
             >
               {{ getStatusInfo(scope.row.status).text }}
             </div>

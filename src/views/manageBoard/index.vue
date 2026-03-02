@@ -1,5 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import {
+  getPmDesignersPage,
+  getPmDesignRecordsPage,
+  getPmDesignRequestsPage
+} from "@/api/design";
+import { dayjs, ElMessage } from "element-plus";
+import { onMounted, ref, watch } from "vue";
+import { calculatePercentage } from "./utils";
+
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+// 源数据 用于数据处理
+const designTaskList = ref([]);
+const designRecordList = ref([]);
 
 const timePeriod = ref<"week" | "month">("week");
 
@@ -18,103 +33,474 @@ const switchTimePeriod = (period: "week" | "month") => {
 // 核心指标数据
 const coreMetrics = ref([
   {
-    title: "本周新需求数",
-    value: 20
+    title: "新需求数",
+    value: 0
   },
   {
-    title: "本周已完成数",
-    value: 29
+    title: "已完成数",
+    value: 0
   },
   {
-    title: "本周插单次数",
-    value: 7
+    title: "插单次数",
+    value: 0
   },
   {
-    title: "当前延期任务",
-    value: 5
+    title: "延期任务",
+    value: 0
   }
 ]);
 
 // 需求结构分布
-const demandDistribution = ref({
+const demandDistribution = ref<any>({
   usageScene: [
-    { label: "S1销售转化", value: 45, color: "bg-blue-500" },
-    { label: "S2对外品牌", value: 30, color: "bg-green-500" },
-    { label: "S3内部支持", value: 15, color: "bg-yellow-500" },
-    { label: "S4长期资产", value: 10, color: "bg-red-500" }
+    { label: "S1销售转化", value: 0, color: "bg-blue-500" },
+    { label: "S2对外品牌", value: 0, color: "bg-green-500" },
+    { label: "S3内部支持", value: 0, color: "bg-yellow-500" },
+    { label: "S4长期资产", value: 0, color: "bg-red-500" }
   ],
   impactScope: [
-    { label: "I1单一", value: 12, color: "bg-gray-300" },
-    { label: "I2项目", value: 26, color: "bg-green-500" },
-    { label: "I3多项目", value: 38, color: "bg-blue-500" },
-    { label: "I4公司级", value: 24, color: "bg-purple-500" }
+    { label: "I1单一", value: 0, color: "bg-gray-500" },
+    { label: "I2项目", value: 0, color: "bg-green-500" },
+    { label: "I3多项目", value: 0, color: "bg-blue-500" },
+    { label: "I4公司级", value: 0, color: "bg-purple-500" }
   ]
 });
 
 // 四象限任务数
 const quadrantTasks = ref([
   {
-    title: "重要且紧急",
-    value: 9,
-    color: "#F4F5FA"
+    title: "重要且紧急（极高）",
+    value: 0,
+    color: "#F4F5FA",
+    priority: 4
   },
   {
-    title: "不重要但紧急",
-    value: 5,
-    color: "#FFF7EA"
+    title: "不重要但紧急（高）",
+    value: 0,
+    color: "#FFF7EA",
+    priority: 3
   },
   {
-    title: "重要不紧急",
-    value: 14,
-    color: "#E9EFFD"
+    title: "重要不紧急（中）",
+    value: 0,
+    color: "#E9EFFD",
+    priority: 2
   },
   {
-    title: "不重要不紧急",
-    value: 8,
-    color: "#F0F8FA"
+    title: "不重要不紧急（低）",
+    value: 0,
+    color: "#F0F8FA",
+    priority: 1
   }
 ]);
 
 // 设计师资源与负载
 const designerLoad = ref([
-  {
-    name: "夏筠",
-    role: "品牌设计",
-    mainHours: 120,
-    supportHours: 29,
-    supportRatio: 60
-  },
-  {
-    name: "黄文文",
-    role: "社媒设计",
-    mainHours: 96,
-    supportHours: 44,
-    supportRatio: 100
-  },
-  {
-    name: "尤俊力",
-    role: "包装设计",
-    mainHours: 80,
-    supportHours: 20,
-    supportRatio: 40
-  }
+  // {
+  //   name: "夏筠",
+  //   role: "品牌设计",
+  //   mainHours: 120,
+  //   supportHours: 29,
+  //   supportRatio: 60
+  // },
+  // {
+  //   name: "黄文文",
+  //   role: "社媒设计",
+  //   mainHours: 96,
+  //   supportHours: 44,
+  //   supportRatio: 100
+  // },
+  // {
+  //   name: "尤俊力",
+  //   role: "包装设计",
+  //   mainHours: 80,
+  //   supportHours: 20,
+  //   supportRatio: 40
+  // }
 ]);
 
 // 延期任务与插单决策
 const delayTasks = ref([
-  { task: "新品包装 A", reason: "插单挤占", days: 3 },
-  { task: "年会物料", reason: "需求多次变更", days: 3 }
+  // { task: "新品包装 A", reason: "插单挤占", days: 3 },
+  // { task: "年会物料", reason: "需求多次变更", days: 3 }
 ]);
 
 // 插单决策记录
 const insertionRecords = ref([
-  { task: "紧急包装", method: "延后任务", impact: "5月延期上市" },
-  { task: "渠道礼盒", method: "启用外包", impact: "无任务受影响" }
+  // { task: "紧急包装", method: "延后任务", impact: "5月延期上市" },
+  // { task: "渠道礼盒", method: "启用外包", impact: "无任务受影响" }
 ]);
 
 // 计算支援比例颜色
 const getSupportRatioColor = ratio => {
   return ratio >= 80 ? "bg-red-500" : "bg-blue-500";
+};
+
+const formatSearchStr = (searchInitValue: Array<any> = []) => {
+  const searchStr = [...searchInitValue];
+  if (timePeriod.value === "week") {
+    searchStr.push({
+      searchName: "createAt",
+      searchType: "betweenStr",
+      searchValue: [
+        dayjs().startOf("week").format("YYYY-MM-DDT00:00:00"),
+        dayjs().endOf("week").format("YYYY-MM-DDT23:59:59")
+      ].join(",")
+    });
+  } else if (timePeriod.value === "month") {
+    searchStr.push({
+      searchName: "createAt",
+      searchType: "betweenStr",
+      searchValue: [
+        dayjs().startOf("month").format("YYYY-MM-DDT00:00:00"),
+        dayjs().endOf("month").format("YYYY-MM-DDT23:59:59")
+      ].join(",")
+    });
+  }
+
+  return JSON.stringify(searchStr);
+};
+
+//#region 请求相关
+// 获取需求列表
+const fetchDesignTaskList = () => {
+  return getPmDesignRequestsPage({
+    pageNo: 1,
+    pageSize: 10e3,
+    searchStr: formatSearchStr()
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取需求列表:", res?.data);
+        designTaskList.value = res?.data?.records || [];
+      } else {
+        ElMessage.error("获取需求列表失败:" + res?.msg);
+      }
+    })
+    .catch(error => {
+      ElMessage.error("获取需求列表失败:" + error.message);
+    });
+};
+
+// 获取记录列表
+const fetchDesignRecordList = () => {
+  return getPmDesignRecordsPage({
+    pageNo: 1,
+    pageSize: 10e3,
+    searchStr: JSON.stringify([
+      {
+        searchName: "descriptionExt",
+        searchType: "like",
+        searchValue: '"isRush":true'
+      }
+    ])
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取记录列表:", res?.data);
+
+        // 根据requestId去重
+        const resRecords = res?.data?.records || [];
+        const uniqueRecords = resRecords.filter(
+          (item, index, self) =>
+            index === self.findIndex(t => t.requestId === item.requestId)
+        );
+
+        designRecordList.value = uniqueRecords;
+      } else {
+        ElMessage.error("获取记录列表失败:" + res?.msg);
+      }
+    })
+    .catch(error => {
+      ElMessage.error("获取记录列表失败:" + error.message);
+    });
+};
+
+// 获取设计师工作负载
+const fetchDesignerWorkloads = () => {
+  return getPmDesignersPage({
+    pageNo: 1,
+    pageSize: 10e3,
+    searchStr: JSON.stringify({
+      searchName: "status",
+      searchType: "equals",
+      searchValue: '"active"'
+    })
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取设计师工作负载:", res?.data?.records || []);
+        const records = res?.data?.records || [];
+        // 因为只有本月，所以只需要处理本月的数据
+        const designerLoadTemp = [];
+        records.forEach(item => {
+          designerLoadTemp.push({
+            name: item.designerName,
+            role: item.primaryCategories,
+            mainHours: item.primaryUsed,
+            supportHours: item.supportUsed,
+            supportRatio: calculatePercentage(
+              Number(item.supportUsed),
+              Number(item.primaryUsed) + Number(item.supportUsed)
+            )
+          });
+
+          designerLoad.value = designerLoadTemp;
+        });
+      } else {
+        console.error("获取设计师工作负载失败:", res?.msg);
+      }
+    })
+    .catch(error => {
+      console.error("获取设计师工作负载失败:", error.message);
+    });
+};
+//#endregion
+
+watch(
+  () => timePeriod.value,
+  newValue => {
+    if (newValue) {
+      fetchDesignTaskList();
+      fetchDesignRecordList();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+onMounted(() => {
+  // 只有每月
+  fetchDesignerWorkloads();
+});
+
+watch(
+  () => [designTaskList.value, designRecordList.value],
+  ([newDesignTaskList, newDesignRecordList]) => {
+    if (newDesignTaskList && newDesignRecordList) {
+      // 处理数据
+      // console.log("源数据发生变化:", newDesignTaskList);
+
+      //#region 核心指标处理
+      function calculateCoreMetrics() {
+        const totalTasks = newDesignTaskList.length;
+        const completedTasks = newDesignTaskList.filter(
+          task => task.status === "COMPLETED"
+        ).length;
+        // 插单任务：
+        const insertionTasks = newDesignRecordList.length;
+        // 延期任务：完成时间晚于截止日期 || 没有完成时间而且当前时间晚于截止日期
+        const delayedTasks = newDesignTaskList.filter(
+          task =>
+            (task.endAt && dayjs(task.endAt).isAfter(dayjs(task.deadline))) ||
+            (!task.endAt && dayjs().isAfter(dayjs(task.deadline)))
+        ).length;
+
+        coreMetrics.value = [
+          {
+            title: "新需求数",
+            value: totalTasks
+          },
+          {
+            title: "已完成数",
+            value: completedTasks
+          },
+          {
+            title: "插单次数",
+            value: insertionTasks
+          },
+          {
+            title: "延期任务",
+            value: delayedTasks
+          }
+        ];
+      }
+      calculateCoreMetrics();
+      //#endregion
+
+      //#region 需求结构分布
+      function calculateStructureDistribution() {
+        const totalTasks = newDesignTaskList.length;
+        const demandDistributionTemp = ref({
+          usageScene: [
+            {
+              label: "S1销售转化",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.usageScenario === "S1")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-blue-500"
+            },
+            {
+              label: "S2对外品牌",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.usageScenario === "S2")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-green-500"
+            },
+            {
+              label: "S3内部支持",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.usageScenario === "S3")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-yellow-500"
+            },
+            {
+              label: "S4长期资产",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.usageScenario === "S4")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-red-500"
+            }
+          ],
+          impactScope: [
+            {
+              label: "I1单一",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.impactRange === "I1")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-gray-500"
+            },
+            {
+              label: "I2项目",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.impactRange === "I2")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-green-500"
+            },
+            {
+              label: "I3多项目",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.impactRange === "I3")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-blue-500"
+            },
+            {
+              label: "I4公司级",
+              value: calculatePercentage(
+                newDesignTaskList.filter(task => task.impactRange === "I4")
+                  .length,
+                totalTasks
+              ),
+              color: "bg-purple-500"
+            }
+          ]
+        });
+        demandDistribution.value = demandDistributionTemp.value;
+      }
+      calculateStructureDistribution();
+      //#endregion
+
+      //#region 任务优先级 & 紧急度概览
+      function calculatePriorityOverview() {
+        const quadrantTasksTemp = ref([
+          {
+            title: "重要且紧急（极高）",
+            value: newDesignTaskList.filter(task => task.priority === 4).length,
+            color: "#F4F5FA",
+            priority: 4
+          },
+          {
+            title: "不重要但紧急（高）",
+            value: newDesignTaskList.filter(task => task.priority === 3).length,
+            color: "#FFF7EA",
+            priority: 3
+          },
+          {
+            title: "重要不紧急（中）",
+            value: newDesignTaskList.filter(task => task.priority === 2).length,
+            color: "#E9EFFD",
+            priority: 2
+          },
+          {
+            title: "不重要不紧急（低）",
+            value: newDesignTaskList.filter(task => task.priority === 1).length,
+            color: "#F0F8FA",
+            priority: 1
+          }
+        ]);
+        quadrantTasks.value = quadrantTasksTemp.value;
+      }
+      calculatePriorityOverview();
+      //#endregion
+
+      //#region 延期任务记录
+      function calculateDelayedTasks() {
+        const delayedTasksList = newDesignTaskList.filter(
+          task =>
+            (task.endAt && dayjs(task.endAt).isAfter(dayjs(task.deadline))) ||
+            (!task.endAt && dayjs().isAfter(dayjs(task.deadline)))
+        );
+        const delayTasksTemp = [];
+
+        delayedTasksList.forEach(item => {
+          delayTasksTemp.push({
+            task: item.title,
+            reason: "",
+            days: dayjs(item.endAt || dayjs()).diff(dayjs(item.deadline), "day")
+          });
+        });
+
+        // console.log("延期任务:", delayedTasksList);
+        delayTasks.value = delayTasksTemp;
+      }
+      calculateDelayedTasks();
+      //#endregion
+
+      //#region 插单决策记录
+      function calculateInsertionRecords() {
+        // const insertionRecords = ref([
+        //   { task: "紧急包装", method: "延后任务", impact: "5月延期上市" },
+        //   { task: "渠道礼盒", method: "启用外包", impact: "无任务受影响" }
+        // ]);
+
+        const insertionRecordsTemp = [];
+        // newDesignRecordList 中得到requestId 并根据requestId 在newDesignTaskList 中筛选出插单记录
+        newDesignRecordList.forEach(item => {
+          const designTaskListSource =
+            newDesignTaskList || designTaskList.value;
+          const task = designTaskListSource.find(
+            task => task.id === item.requestId
+          );
+          if (task) {
+            insertionRecordsTemp.push({
+              task: task.title,
+              method: "",
+              impact: ""
+            });
+          }
+        });
+        insertionRecords.value = insertionRecordsTemp;
+      }
+      calculateInsertionRecords();
+      //#endregion
+    }
+  },
+  {
+    immediate: true,
+    deep: true
+  }
+);
+
+const handleClickCard = item => {
+  // console.log("点击了卡片:", item);
+  router.push(
+    `/detailTable/index?priority=${item.priority}&timePeriod=${timePeriod.value}`
+  );
 };
 </script>
 
@@ -240,7 +626,7 @@ const getSupportRatioColor = ratio => {
         <!-- 设计师资源与负载 -->
         <div class="bg-white rounded-lg shadow-sm p-5">
           <div class="text-lg font-medium text-[#0a0a0a] mb-4">
-            设计师资源与负载
+            设计师资源与负载（本月）
           </div>
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -331,6 +717,7 @@ const getSupportRatioColor = ratio => {
               :style="{ backgroundColor: item.color }"
               v-for="item in quadrantTasks"
               :key="item.title"
+              @click="handleClickCard(item)"
             >
               <div class="text-sm text-[#4A5565]">{{ item.title }}</div>
               <div class="text-lg font-bold text-[#0a0a0a] mt-1">

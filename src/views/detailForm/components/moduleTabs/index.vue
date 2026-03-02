@@ -4,6 +4,7 @@ import uploadSection from "./uploadSection.vue";
 import notesSection from "./notesSection.vue";
 
 const props = defineProps<{
+  taskDetail: any;
   recordDetail: any;
   newRecordFn: (data: any, callback?: () => void) => void;
 }>();
@@ -22,6 +23,7 @@ const handleTabChange = (tabId: string) => {
 watch(
   () => props.recordDetail,
   newValue => {
+    tabs.value[0].count = newValue.content?.fileList?.length || 0;
     tabs.value[1].count = newValue.descriptionExt?.logList?.length || 0;
   }
 );
@@ -72,7 +74,11 @@ watch(
         data-slot="tabs-content"
         class="pd-detailForm-moduleTabs__panel"
       >
-        <uploadSection />
+        <uploadSection
+          :taskDetail="props.taskDetail"
+          :recordDetail="props.recordDetail"
+          :newRecordFn="props.newRecordFn"
+        />
       </div>
 
       <!-- 任务日志 Tab -->
@@ -85,6 +91,7 @@ watch(
         class="pd-detailForm-moduleTabs__panel"
       >
         <notesSection
+          :taskDetail="props.taskDetail"
           :recordDetail="props.recordDetail"
           :newRecordFn="props.newRecordFn"
         />

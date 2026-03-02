@@ -9,7 +9,7 @@ const initDialog = (id: string) => {
   requestId.value = id;
   dialogVisible.value = true;
 
-  console.log("打开详情弹窗:", id);
+  // console.log("打开详情弹窗:", id);
 };
 
 defineExpose({

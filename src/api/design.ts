@@ -155,8 +155,8 @@ export interface DesignerWorkload {
 }
 export const getPmDesignersPage = (
   params: PageConfig & {
-    month?: string;
-    year?: string;
+    month?: number;
+    year?: number;
   }
 ) => {
   return http.request("get", commonUrlApi("/pm/design/designers/page"), {
@@ -272,6 +272,13 @@ export const getPmDesignRecordsDetail = (params: { requestId: string }) => {
     commonUrlApi(`/pm/design/record/${params.requestId}`),
     {}
   );
+};
+
+/** 获取记录分页数据 */
+export const getPmDesignRecordsPage = (params: PageConfig) => {
+  return http.request("get", commonUrlApi("/pm/design/record/page"), {
+    params
+  });
 };
 
 /** 增加需求关注 */

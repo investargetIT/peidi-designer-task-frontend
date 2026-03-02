@@ -10,11 +10,12 @@ import {
   getPmDesignRequestsDetail,
   postPmDesignRequestsUpdate,
   getPmDesignRecordsDetail,
-  postPmDesignRecordNew
+  postPmDesignRecordNew,
+  getPmDesignersPage
 } from "@/api/design";
 import { ElMessage } from "element-plus";
 import { onMounted, ref, watch } from "vue";
-import { DESIGN_ENUM, DESIGN_ENUM_OPTIONS } from "@/constants/design";
+import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
 
 const props = defineProps({
   resquestId: {
@@ -22,6 +23,8 @@ const props = defineProps({
     required: true
   }
 });
+
+const designers = ref([]);
 
 const taskDetail = ref(
   // {
@@ -62,6 +65,7 @@ const taskDetail = ref(
       statusSource: ""
     },
     workInfo: {
+      assignedId: "",
       assignee: "",
       estimatedHours: null,
       actualHours: null,
@@ -93,7 +97,7 @@ const fetchTaskDetail = () => {
   })
     .then((res: any) => {
       if (res?.code === 200) {
-        console.log("获取任务详情:", res);
+        // console.log("获取任务详情:", res);
         const resData = res?.data || {};
 
         taskDetail.value = {
@@ -123,6 +127,7 @@ const fetchTaskDetail = () => {
             statusSource: resData.status
           },
           workInfo: {
+            assignedId: resData.assignedTo,
             assignee: resData.assignedToName,
             estimatedHours: resData.estimatedHours,
             actualHours: resData.actualHours || 0,
@@ -156,7 +161,7 @@ const fetchRecordsDetail = () => {
           const detail = res?.data?.[res?.data?.length - 1];
           // console.log("任务记录:", detail);
           recordDetail.value = {
-            content: detail.content,
+            content: JSON.parse(detail.content || "{}"),
             createdAt: detail.createdAt,
             descriptionExt: JSON.parse(detail.descriptionExt || "{}"),
             endTime: detail.endTime,
@@ -176,7 +181,7 @@ const fetchRecordsDetail = () => {
     });
 };
 
-const fetchUpdateTaskDetail = (data: any) => {
+const fetchUpdateTaskDetail = (data: any, callback?: () => void) => {
   postPmDesignRequestsUpdate({
     ...data
   })
@@ -184,6 +189,7 @@ const fetchUpdateTaskDetail = (data: any) => {
       if (res?.code === 200) {
         // console.log("更新任务详情:", res);
         ElMessage.success("更新任务详情成功");
+        callback?.();
         fetchTaskDetail();
       } else {
         ElMessage.error("更新任务详情失败:" + res?.msg);
@@ -201,7 +207,7 @@ const fetchNewRecordDetail = (data: any, callback?: () => void) => {
     .then((res: any) => {
       if (res?.code === 200) {
         ElMessage.success("创建任务记录成功");
-        // callback?.();
+        callback?.();
         fetchRecordsDetail();
       } else {
         ElMessage.error("创建任务记录失败:" + res?.msg);
@@ -209,6 +215,34 @@ const fetchNewRecordDetail = (data: any, callback?: () => void) => {
     })
     .catch(error => {
       ElMessage.error("创建任务记录失败:" + error.message);
+    });
+};
+
+const fetchDesignerWorkloads = () => {
+  return getPmDesignersPage({
+    pageNo: 1,
+    pageSize: 10e3,
+    searchStr: JSON.stringify({
+      searchName: "status",
+      searchType: "equals",
+      searchValue: '"active"'
+    })
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取设计师工作负载:", res?.data?.records || []);
+
+        const records = res?.data?.records || [];
+        designers.value = records.map(item => ({
+          label: item.designerName,
+          value: item.userId
+        }));
+      } else {
+        console.error("获取设计师工作负载失败:", res?.msg);
+      }
+    })
+    .catch(error => {
+      console.error("获取设计师工作负载失败:", error.message);
     });
 };
 
@@ -224,13 +258,22 @@ watch(
     immediate: true
   }
 );
+
+onMounted(() => {
+  fetchDesignerWorkloads();
+});
 </script>
 
 <template>
   <div>
     <div v-if="props.resquestId">
       <div>
-        <HeaderCard :taskDetail="taskDetail" />
+        <HeaderCard
+          :taskDetail="taskDetail"
+          :recordDetail="recordDetail"
+          :updateFn="fetchUpdateTaskDetail"
+          :newRecordFn="fetchNewRecordDetail"
+        />
       </div>
 
       <div class="py-8">
@@ -249,6 +292,7 @@ watch(
 
             <!-- Tabs Section -->
             <ModuleTabs
+              :taskDetail="taskDetail"
               :recordDetail="recordDetail"
               :newRecordFn="fetchNewRecordDetail"
             />
@@ -259,6 +303,7 @@ watch(
             <TaskManagementCard
               :taskDetail="taskDetail"
               :recordDetail="recordDetail"
+              :designers="designers"
               :updateFn="fetchUpdateTaskDetail"
               :newRecordFn="fetchNewRecordDetail"
             />

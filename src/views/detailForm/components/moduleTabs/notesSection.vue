@@ -4,15 +4,17 @@ import { Upload } from "@element-plus/icons-vue";
 import RiChat4Line from "~icons/ri/chat-4-line";
 import LucideSend from "~icons/lucide/send";
 import { storageLocal } from "@pureadmin/utils";
+import dayjs from "dayjs";
 
 const USER_INFO: any = storageLocal().getItem("dataSource");
 
 const props = defineProps<{
+  taskDetail: any;
   recordDetail: any;
   newRecordFn: (data: any, callback?: () => void) => void;
 }>();
 
-interface LogItem {
+export interface LogItem {
   id: number;
   type: "message" | "upload";
   user: string;
@@ -61,10 +63,17 @@ const addNote = () => {
       content: notes.value,
       timestamp: new Date().toLocaleString("zh-CN")
     };
-    const newLogList = [...logList.value, newLog];
+    const newLogList = [newLog, ...logList.value];
     props.newRecordFn(
       {
         ...props.recordDetail,
+        requestId: props.taskDetail.id,
+        createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+        userName: USER_INFO?.username || "",
+        userId: USER_INFO?.id || null,
+        content: JSON.stringify({
+          ...props.recordDetail.content
+        }),
         descriptionExt: JSON.stringify({
           ...props.recordDetail.descriptionExt,
           logList: newLogList
