@@ -18,7 +18,7 @@ const getProgressPercentage = (current: number, max: number) => {
 
 const getProgressColor = (title: string, percentage: number) => {
   if (title.includes("支援")) {
-    return percentage >= 100 ? "bg-amber-500" : "bg-blue-500";
+    return "bg-amber-500";
   }
   return "bg-blue-500";
 };
@@ -98,7 +98,7 @@ const getTotalWorkloadData = () => {
         </div>
       </div>
 
-      <!-- 新增：总体工时进度条 -->
+      <!-- 累计工时进度条 -->
       <div class="space-y-2">
         <div class="flex items-center justify-between text-sm">
           <span class="flex items-center gap-1.5 text-gray-600">
@@ -117,12 +117,14 @@ const getTotalWorkloadData = () => {
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
-            总体工时 ({{ getTotalWorkloadData()?.primaryCurrent || 0 }}h |
-            {{ getTotalWorkloadData()?.supportCurrent || 0 }}h)
+            累计工时 ({{ props.designer.cumulative.primaryTotal || 0 }}h |
+            {{ props.designer.cumulative.supportTotal || 0 }}h)
           </span>
           <span class="font-medium">
-            {{ getTotalWorkloadData()?.totalCurrent || 0 }}h /
-            {{ getTotalWorkloadData()?.totalMax || 220 }}h
+            {{
+              (props.designer.cumulative.primaryTotal || 0) +
+              (props.designer.cumulative.supportTotal || 0)
+            }}h / 220h
           </span>
         </div>
 
@@ -131,33 +133,41 @@ const getTotalWorkloadData = () => {
         >
           <!-- 蓝色主职能工时部分 -->
           <div
-            v-if="getTotalWorkloadData()"
             class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-300"
-            :style="{ width: `${getTotalWorkloadData().primaryPercentage}%` }"
+            :style="{
+              width: `${((props.designer.cumulative.primaryTotal || 0) / Math.max(props.designer.cumulative.maxTotal, 220)) * 100}%`
+            }"
           ></div>
           <!-- 橙色支援工时部分 -->
           <div
-            v-if="getTotalWorkloadData()"
             class="absolute top-0 left-0 h-full bg-amber-500 transition-all duration-300"
             :style="{
-              left: `${getTotalWorkloadData().primaryPercentage}%`,
-              width: `${getTotalWorkloadData().supportPercentage}%`
+              left: `${((props.designer.cumulative.primaryTotal || 0) / Math.max(props.designer.cumulative.maxTotal, 220)) * 100}%`,
+              width: `${((props.designer.cumulative.supportTotal || 0) / Math.max(props.designer.cumulative.maxTotal, 220)) * 100}%`
             }"
           ></div>
         </div>
 
-        <div class="flex justify-between text-xs text-gray-600">
+        <!-- <div class="flex justify-between text-xs text-gray-600">
           <span>
-            使用率: {{ getTotalWorkloadData()?.totalPercentage || 0 }}%
+            使用率：{{
+              Math.round(
+                (((props.designer.cumulative.primaryTotal || 0) +
+                  (props.designer.cumulative.supportTotal || 0)) /
+                  (props.designer.cumulative.maxTotal || 220)) *
+                  100
+              )
+            }}%
           </span>
           <span
             >剩余:
             {{
-              (getTotalWorkloadData()?.totalMax || 220) -
-              (getTotalWorkloadData()?.totalCurrent || 0)
+              (props.designer.cumulative.maxTotal || 220) -
+              ((props.designer.cumulative.primaryTotal || 0) +
+                (props.designer.cumulative.supportTotal || 0))
             }}h</span
           >
-        </div>
+        </div> -->
       </div>
 
       <!-- Workload Sections -->

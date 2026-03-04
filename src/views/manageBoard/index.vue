@@ -136,25 +136,42 @@ const getSupportRatioColor = ratio => {
   return ratio >= 80 ? "bg-red-500" : "bg-blue-500";
 };
 
-const formatSearchStr = (searchInitValue: Array<any> = []) => {
-  const searchStr = [...searchInitValue];
-  if (timePeriod.value === "week") {
+const formatSearchStr = (type: "task" | "record") => {
+  const searchStr = [];
+  if (type === "task") {
+    if (timePeriod.value === "week") {
+      searchStr.push({
+        searchName: "createAt",
+        searchType: "betweenStr",
+        searchValue: [
+          dayjs().startOf("week").format("YYYY-MM-DDT00:00:00"),
+          dayjs().endOf("week").format("YYYY-MM-DDT23:59:59")
+        ].join(",")
+      });
+    } else if (timePeriod.value === "month") {
+      searchStr.push({
+        searchName: "createAt",
+        searchType: "betweenStr",
+        searchValue: [
+          dayjs().startOf("month").format("YYYY-MM-DDT00:00:00"),
+          dayjs().endOf("month").format("YYYY-MM-DDT23:59:59")
+        ].join(",")
+      });
+    }
+  }
+  if (type === "record") {
     searchStr.push({
-      searchName: "createAt",
-      searchType: "betweenStr",
-      searchValue: [
-        dayjs().startOf("week").format("YYYY-MM-DDT00:00:00"),
-        dayjs().endOf("week").format("YYYY-MM-DDT23:59:59")
-      ].join(",")
-    });
-  } else if (timePeriod.value === "month") {
-    searchStr.push({
-      searchName: "createAt",
+      searchName: "createdAt",
       searchType: "betweenStr",
       searchValue: [
         dayjs().startOf("month").format("YYYY-MM-DDT00:00:00"),
         dayjs().endOf("month").format("YYYY-MM-DDT23:59:59")
       ].join(",")
+    });
+    searchStr.push({
+      searchName: "descriptionExt",
+      searchType: "like",
+      searchValue: '"isRush":true'
     });
   }
 
@@ -167,7 +184,7 @@ const fetchDesignTaskList = () => {
   return getPmDesignRequestsPage({
     pageNo: 1,
     pageSize: 10e3,
-    searchStr: formatSearchStr()
+    searchStr: formatSearchStr("task")
   })
     .then((res: any) => {
       if (res?.code === 200) {
@@ -187,13 +204,7 @@ const fetchDesignRecordList = () => {
   return getPmDesignRecordsPage({
     pageNo: 1,
     pageSize: 10e3,
-    searchStr: JSON.stringify([
-      {
-        searchName: "descriptionExt",
-        searchType: "like",
-        searchValue: '"isRush":true'
-      }
-    ])
+    searchStr: formatSearchStr("record")
   })
     .then((res: any) => {
       if (res?.code === 200) {

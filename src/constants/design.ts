@@ -145,3 +145,45 @@ export const DESIGN_ENUM_OPTIONS = {
     }
   ]
 };
+
+// 映射表：二级类型 -> 使用场景 & 影响范围
+export const DESIGN_SECOND_CATEGORY_MAPPING: Record<
+  string,
+  { usageScenario: string; impactRange: string }
+> = {
+  // S1 产品视觉设计
+  套版设计: { usageScenario: "S1", impactRange: "I2" },
+  新品包装: { usageScenario: "S1", impactRange: "I3" },
+  年度重点包装: { usageScenario: "S1", impactRange: "I4" },
+  老包装改版: { usageScenario: "S1", impactRange: "I3" },
+  渠道包装礼盒: { usageScenario: "S1", impactRange: "I2" },
+  产品视觉物料: { usageScenario: "S1", impactRange: "I1" },
+
+  // S2 社媒与品牌设计
+  小红书单篇: { usageScenario: "S2", impactRange: "I1" },
+  小红书多图: { usageScenario: "S2", impactRange: "I1" },
+  公众号整篇: { usageScenario: "S2", impactRange: "I1" },
+  社媒活动专题: { usageScenario: "S2", impactRange: "I2" },
+  小程序商城: { usageScenario: "S2", impactRange: "I1" },
+  品牌海报: { usageScenario: "S2", impactRange: "I1" },
+  线下活动视觉: { usageScenario: "S2", impactRange: "I2" },
+  线下物料: { usageScenario: "S2", impactRange: "I1" },
+  品牌辅销品设计: { usageScenario: "S2", impactRange: "I2" },
+  品牌辅销品开发: { usageScenario: "S2", impactRange: "I2" },
+  品牌手册简版: { usageScenario: "S2", impactRange: "I3" },
+  品牌手册升级: { usageScenario: "S2", impactRange: "I3" },
+
+  // S3 集团设计
+  集团对外宣发物料: { usageScenario: "S3", impactRange: "I4" },
+  "人力招聘设计（简）": { usageScenario: "S3", impactRange: "I1" },
+  "人力招聘设计（繁）": { usageScenario: "S3", impactRange: "I1" },
+  行政简易需求: { usageScenario: "S3", impactRange: "I1" },
+  集团小型年会活动: { usageScenario: "S3", impactRange: "I1" },
+  集团空间文化墙设计: { usageScenario: "S3", impactRange: "I1" },
+  集团大型年会活动: { usageScenario: "S3", impactRange: "I3" },
+
+  // S4 品牌VI设计
+  "品牌 VI 设计原则": { usageScenario: "S4", impactRange: "I4" },
+  视觉标准模板输出: { usageScenario: "S4", impactRange: "I4" },
+  "VI 局部升级": { usageScenario: "S4", impactRange: "I3" }
+};

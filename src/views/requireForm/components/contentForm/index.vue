@@ -8,7 +8,7 @@ import GrommetIconsInfo from "~icons/grommet-icons/info";
 import MingcuteNotificationLine from "~icons/mingcute/notification-line";
 import RiUser3Line from "~icons/ri/user-3-line";
 import dd from "dingtalk-jsapi";
-import { SYSTEM_CONFIG } from "@/constants";
+import { SYSTEM_CONFIG, DESIGN_SECOND_CATEGORY_MAPPING } from "@/constants";
 import { ddAuthFun } from "../../utils/ddAuth";
 
 const props = defineProps({
@@ -90,6 +90,23 @@ watch(
   newVal => {
     if (newVal) {
       formModel.taskType = "";
+    }
+  }
+);
+
+// 监听二级类型变化
+watch(
+  () => formModel.taskType,
+  newVal => {
+    if (!newVal) return;
+
+    const mapping = DESIGN_SECOND_CATEGORY_MAPPING[newVal];
+    if (mapping) {
+      formModel.usageScenario = mapping.usageScenario;
+      formModel.impactRange = mapping.impactRange;
+      ElMessage.info(
+        `已根据【${newVal}】自动设置使用场景为 ${mapping.usageScenario}，影响范围为 ${mapping.impactRange}`
+      );
     }
   }
 );

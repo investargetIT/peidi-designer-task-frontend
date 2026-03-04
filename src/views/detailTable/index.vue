@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  watch
+} from "vue";
 import { ElMessage, FormInstance } from "element-plus";
 import { getPmDesignersPage, getPmDesignRequestsPage } from "@/api/design";
 import dayjs from "dayjs";
@@ -28,7 +36,9 @@ const initSearchParamsFromUrl = () => {
 
   // 如果两个参数都存在则触发搜索
   if (priority !== undefined && timePeriod !== undefined) {
-    fetchDesignTaskList();
+    nextTick(() => {
+      fetchDesignTaskList();
+    });
   }
 };
 
@@ -142,6 +152,8 @@ const fetchDesignTaskList = () => {
       ElMessage.error("获取需求列表失败:" + error.message);
     });
 };
+// 提供获取需求列表的方法
+provide("fetchDesignTaskList", fetchDesignTaskList);
 
 const fetchDesignerWorkloads = () => {
   return getPmDesignersPage({
@@ -362,6 +374,15 @@ onMounted(() => {
         </el-table-column>
         <el-table-column prop="usageScenario" label="使用场景" />
         <el-table-column prop="impactRange" label="影响范围" />
+        <el-table-column prop="createAt" label="创建日期">
+          <template #default="scope">
+            {{
+              scope.row.createAt
+                ? dayjs(scope.row.createAt).format("YYYY-MM-DD")
+                : ""
+            }}
+          </template>
+        </el-table-column>
         <el-table-column prop="deadline" label="截止日期" />
         <el-table-column prop="createUserName" label="提交人" />
         <el-table-column prop="assignedToName" label="负责人" />

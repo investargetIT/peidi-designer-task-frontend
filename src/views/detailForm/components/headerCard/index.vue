@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import DeleteDialog from "./deleteDialog.vue";
 import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
+import dayjs from "dayjs";
 
 const props = defineProps({
   taskDetail: {
@@ -127,6 +128,13 @@ const handleDelete = () => {
       </span>
       <span :class="getBgColor('ASSIGNEE')">
         负责人：{{ props.taskDetail.workInfo.assignee }}
+      </span>
+      <span :class="getBgColor('ASSIGNEE')">
+        创建日期：{{
+          props.taskDetail.basicInfo.createAt
+            ? dayjs(props.taskDetail.basicInfo.createAt).format("YYYY-MM-DD")
+            : ""
+        }}
       </span>
     </div>
 

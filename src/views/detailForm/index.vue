@@ -14,8 +14,11 @@ import {
   getPmDesignersPage
 } from "@/api/design";
 import { ElMessage } from "element-plus";
-import { onMounted, ref, watch } from "vue";
+import { inject, onMounted, ref, watch } from "vue";
 import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
+
+// 从父组件注入获取需求列表的方法
+const synchronousUpdate = inject<() => Promise<void>>("fetchDesignTaskList");
 
 const props = defineProps({
   resquestId: {
@@ -39,7 +42,8 @@ const taskDetail = ref(
   //     submitter: "产品部王经理",
   //     priority: "极高",
   //     status: "进行中",
-  //     statusSource: "IN_PROGRESS"
+  //     statusSource: "IN_PROGRESS",
+  //     createAt: "2024/1/15"
   //   },
   //   workInfo: {
   //     assignee: "尤俊力",
@@ -62,7 +66,8 @@ const taskDetail = ref(
       submitter: "",
       priority: "",
       status: "",
-      statusSource: ""
+      statusSource: "",
+      createAt: ""
     },
     workInfo: {
       assignedId: "",
@@ -124,7 +129,8 @@ const fetchTaskDetail = () => {
               DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
                 item => item.value === resData.status
               )?.label || resData.status,
-            statusSource: resData.status
+            statusSource: resData.status,
+            createAt: resData.createAt
           },
           workInfo: {
             assignedId: resData.assignedTo,
@@ -191,6 +197,7 @@ const fetchUpdateTaskDetail = (data: any, callback?: () => void) => {
         ElMessage.success("更新任务详情成功");
         callback?.();
         fetchTaskDetail();
+        synchronousUpdate();
       } else {
         ElMessage.error("更新任务详情失败:" + res?.msg);
       }

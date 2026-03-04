@@ -34,65 +34,13 @@ const designers = ref([
   //     { value: 1, label: "主职责任务" },
   //     { value: 0, label: "支援任务" },
   //     { value: "24h", label: "本月总工时" }
-  //   ]
-  // }
-  // {
-  //   id: 2,
-  //   name: "张小明",
-  //   department: "UI设计部",
-  //   avatarText: "张",
-  //   skills: [
-  //     { type: "primary", label: "UI设计" },
-  //     { type: "support", label: "交互设计" }
   //   ],
-  //   workloads: [
-  //     { title: "主职能工时", current: 156, max: 176 },
-  //     { title: "支援工时", current: 32, max: 44 }
-  //   ],
-  //   stats: [
-  //     { value: 3, label: "主职责任务" },
-  //     { value: 2, label: "支援任务" },
-  //     { value: "188h", label: "本月总工时" }
-  //   ]
-  // },
-  // {
-  //   id: 3,
-  //   name: "李小红",
-  //   department: "视觉设计组",
-  //   avatarText: "李",
-  //   skills: [
-  //     { type: "primary", label: "平面设计" },
-  //     { type: "support", label: "插画设计" },
-  //     { type: "support", label: "包装设计" }
-  //   ],
-  //   workloads: [
-  //     { title: "主职能工时", current: 88, max: 176 },
-  //     { title: "支援工时", current: 44, max: 44 }
-  //   ],
-  //   stats: [
-  //     { value: 2, label: "主职责任务" },
-  //     { value: 1, label: "支援任务" },
-  //     { value: "132h", label: "本月总工时" }
-  //   ]
-  // },
-  // {
-  //   id: 4,
-  //   name: "王大力",
-  //   department: "品牌设计部",
-  //   avatarText: "王",
-  //   skills: [
-  //     { type: "primary", label: "品牌设计" },
-  //     { type: "support", label: "VI设计" }
-  //   ],
-  //   workloads: [
-  //     { title: "主职能工时", current: 176, max: 176 },
-  //     { title: "支援工时", current: 12, max: 44 }
-  //   ],
-  //   stats: [
-  //     { value: 4, label: "主职责任务" },
-  //     { value: 1, label: "支援任务" },
-  //     { value: "188h", label: "本月总工时" }
-  //   ]
+  //   // 累计相关参数 统计
+  //   cumulative: {
+  //     primaryTotal: 0,
+  //     supportTotal: 0,
+  //     maxTotal: 0
+  //   }
   // }
 ]);
 
@@ -162,7 +110,12 @@ const fetchDesignerWorkloads = () => {
               { value: item.ongoingPrimaryProjects, label: "主职责任务" },
               { value: item.ongoingSupportProjects, label: "支援任务" },
               { value: `${item.totalHours}h`, label: "本月总工时" }
-            ]
+            ],
+            cumulative: {
+              primaryTotal: item.primaryHours,
+              supportTotal: item.supportHours,
+              maxTotal: (item.primaryHours || 0) + (item.supportHours || 0)
+            }
           });
         });
 
