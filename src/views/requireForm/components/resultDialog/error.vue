@@ -124,7 +124,7 @@ const handleConfirm = async () => {
         {
           ...sourceFormData.value
         },
-        id => {
+        (id, newFileList) => {
           if (id) {
             props.rushFn(
               {
@@ -145,6 +145,9 @@ const handleConfirm = async () => {
                 userId: USER_INFO?.id || null,
                 descriptionExt: JSON.stringify({
                   isRush: true
+                }),
+                content: JSON.stringify({
+                  fileList: newFileList
                 })
               },
               () => {}

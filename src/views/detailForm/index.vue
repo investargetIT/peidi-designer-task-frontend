@@ -177,6 +177,8 @@ const fetchRecordsDetail = () => {
             userId: detail.userId,
             userName: detail.userName
           };
+        } else {
+          recordDetail.value = {};
         }
       } else {
         ElMessage.error("获取任务记录失败:" + res?.msg);

@@ -3,9 +3,17 @@ import { computed, ref } from "vue";
 import { User } from "@element-plus/icons-vue";
 import { DESIGN_ENUM } from "@/constants/design";
 import { ElMessage } from "element-plus";
+import dayjs from "dayjs";
+import { storageLocal } from "@pureadmin/utils";
+
+const USER_INFO: any = storageLocal().getItem("dataSource");
 
 const props = defineProps({
   addFn: {
+    type: Function,
+    required: true
+  },
+  recordFn: {
     type: Function,
     required: true
   }
@@ -81,8 +89,24 @@ const handleConfirm = () => {
     {
       ...sourceFormData.value
     },
-    () => {
+    (id, newFileList) => {
       visible.value = false;
+
+      if (id) {
+        // 添加任务必定是首次添加记录，不需要向前兼容
+        props.recordFn(
+          {
+            requestId: id,
+            createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+            userName: USER_INFO?.username || "",
+            userId: USER_INFO?.id || null,
+            content: JSON.stringify({
+              fileList: newFileList
+            })
+          },
+          () => {}
+        );
+      }
     }
   );
 };

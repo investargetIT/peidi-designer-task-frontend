@@ -12,7 +12,7 @@ const props = defineProps<{
 const activeTab = ref("uploads");
 
 const tabs = ref([
-  { id: "uploads", label: "作品上传", count: 0 },
+  { id: "uploads", label: "文件上传", count: 0 },
   { id: "logs", label: "任务日志", count: 0 }
 ]);
 

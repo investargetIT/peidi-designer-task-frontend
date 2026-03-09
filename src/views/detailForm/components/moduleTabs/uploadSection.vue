@@ -201,8 +201,10 @@ onMounted(async () => {
 watch(
   () => props.recordDetail,
   newValue => {
-    if (newValue.content?.fileList) {
+    if (newValue?.content?.fileList) {
       uploadedFiles.value = newValue.content.fileList;
+    } else {
+      uploadedFiles.value = [];
     }
   }
 );
@@ -215,7 +217,7 @@ watch(
         <el-icon size="24">
           <LucideImageUp />
         </el-icon>
-        <span class="font-semibold text-lg">作品上传</span>
+        <span class="font-semibold text-lg">文件上传</span>
       </div>
 
       <div class="space-y-6">

@@ -7,9 +7,11 @@ import TablerTarget from "~icons/tabler/target";
 import GrommetIconsInfo from "~icons/grommet-icons/info";
 import MingcuteNotificationLine from "~icons/mingcute/notification-line";
 import RiUser3Line from "~icons/ri/user-3-line";
+import LetsIconsUpload from "~icons/lets-icons/upload";
 import dd from "dingtalk-jsapi";
 import { SYSTEM_CONFIG, DESIGN_SECOND_CATEGORY_MAPPING } from "@/constants";
 import { ddAuthFun } from "../../utils/ddAuth";
+import Upload from "./upload.vue";
 
 const props = defineProps({
   addFn: {
@@ -42,7 +44,8 @@ const formModel = reactive({
   usageScenario: "",
   impactRange: "",
   attentionUsers: "",
-  attentionUsersName: ""
+  attentionUsersName: "",
+  uploadedFiles: []
 });
 
 // 表单验证规则
@@ -122,6 +125,8 @@ const handleTaskTypeChange = (val: any) => {
 
 // 提交表单
 const handleSubmit = async () => {
+  // console.log("提交表单:", formModel);
+  // return;
   if (!formRef.value) return;
   await formRef.value.validate((valid: boolean) => {
     if (valid) {
@@ -448,7 +453,7 @@ onMounted(() => {
 
           <!-- Right Column -->
           <el-col :xs="24" :sm="24" :lg="8" class="mb-2">
-            <el-card shadow="never" class="border">
+            <el-card shadow="never" class="border mb-6">
               <div
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4"
               >
@@ -484,6 +489,21 @@ onMounted(() => {
                 >
                   已选择相关人: {{ formModel.attentionUsersName }}
                 </div>
+              </el-form-item>
+            </el-card>
+
+            <!-- 文件上传 -->
+            <el-card shadow="never" class="border">
+              <div
+                class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4"
+              >
+                <el-icon :size="16">
+                  <LetsIconsUpload />
+                </el-icon>
+                文件上传
+              </div>
+              <el-form-item label="需求文件" prop="uploadedFiles">
+                <Upload v-model="formModel.uploadedFiles" />
               </el-form-item>
             </el-card>
           </el-col>

@@ -167,8 +167,11 @@ const fetchCheckAllocation = (
 };
 
 const fetchAddDesignTask = (
-  params: DesignTaskCreateParams & { attentionUsers: any },
-  callback?: (requestId: number | string | null) => void
+  params: DesignTaskCreateParams & {
+    attentionUsers: any;
+    uploadedFiles: any[];
+  },
+  callback?: (requestId: number | string | null, newFileList: any) => void
 ) => {
   // console.log("添加设计需求:", params);
   // return;
@@ -179,8 +182,7 @@ const fetchAddDesignTask = (
     .then((res: any) => {
       if (res?.code === 200) {
         ElMessage.success("添加设计需求成功");
-        callback?.(res.data?.requestId || null);
-
+        callback?.(res.data?.requestId || null, params.uploadedFiles || []);
         // 添加需求关注
         if (res.data?.requestId && params.attentionUsers) {
           const fetchAddAttentionParams = params.attentionUsers
@@ -353,7 +355,11 @@ onMounted(async () => {
     </div>
 
     <div>
-      <ResultDialog ref="resultDialogRef" :addFn="fetchAddDesignTask" />
+      <ResultDialog
+        ref="resultDialogRef"
+        :addFn="fetchAddDesignTask"
+        :recordFn="fetchNewRecordDetail"
+      />
     </div>
 
     <div>

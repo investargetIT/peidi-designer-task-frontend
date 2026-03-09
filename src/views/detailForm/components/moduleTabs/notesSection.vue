@@ -91,6 +91,8 @@ watch(
   newValue => {
     if (newValue.descriptionExt?.logList) {
       logList.value = newValue.descriptionExt?.logList;
+    } else {
+      logList.value = [];
     }
   }
 );
