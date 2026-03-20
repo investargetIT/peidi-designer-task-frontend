@@ -1,29 +1,29 @@
 const Layout = () => import("@/layout/index.vue");
 
 export default [
-  {
-    path: "/manageBoard",
-    name: "ManageBoardLayout",
-    redirect: "/manageBoard/index",
-    component: Layout,
-    meta: {
-      icon: "tdesign/app",
-      title: "管理看板",
-      showLink: true,
-      rank: 11
-    },
-    children: [
-      {
-        path: "/manageBoard/index",
-        name: "管理看板",
-        component: () => import("@/views/manageBoard/index.vue"),
-        meta: {
-          title: "管理看板",
-          icon: "tdesign/app"
-        }
-      }
-    ]
-  },
+  // {
+  //   path: "/manageBoard",
+  //   name: "ManageBoardLayout",
+  //   redirect: "/manageBoard/index",
+  //   component: Layout,
+  //   meta: {
+  //     icon: "tdesign/app",
+  //     title: "管理看板",
+  //     showLink: true,
+  //     rank: 11
+  //   },
+  //   children: [
+  //     {
+  //       path: "/manageBoard/index",
+  //       name: "管理看板",
+  //       component: () => import("@/views/manageBoard/index.vue"),
+  //       meta: {
+  //         title: "管理看板",
+  //         icon: "tdesign/app"
+  //       }
+  //     }
+  //   ]
+  // },
   {
     path: "/workload",
     name: "WorkloadLayout",

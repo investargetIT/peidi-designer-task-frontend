@@ -6,7 +6,7 @@ export default {
   path: "/",
   name: "HomeLayout",
   component: Layout,
-  redirect: "/manageBoard/index",
+  redirect: "/workload/index",
   meta: {
     icon: "",
     title: "",
