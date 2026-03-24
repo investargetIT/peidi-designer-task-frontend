@@ -229,7 +229,13 @@ const fetchAddAttention = (
 };
 
 // 处理插单解决方案
-const fetchRushDesignTask = (params: any, callback?: () => void) => {
+const fetchRushDesignTask = (
+  params: any,
+  callback?: (
+    designerId: number | string | null,
+    designerName: string | null
+  ) => void
+) => {
   // console.log("处理插单解决方案:", params);
   // return;
   return postPmDesignRequestsResolve({
@@ -241,7 +247,10 @@ const fetchRushDesignTask = (params: any, callback?: () => void) => {
           message: "插单/启用外包成功",
           type: "success"
         });
-        callback?.();
+        callback?.(
+          res.data?.designerId || null,
+          res.data?.designerName || null
+        );
       } else {
         ElMessage.error("插单/启用外包失败:" + res?.msg);
       }

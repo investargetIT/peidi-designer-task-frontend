@@ -255,6 +255,34 @@ function initRouter() {
             }
             //#endregion
 
+            //#region 判断设计师工作负载权限
+            if (hasPermission(userId, "workload")) {
+              routesTemp.push({
+                path: "/workload",
+                name: "WorkloadLayout",
+                redirect: "/workload/index",
+                component: Layout,
+                meta: {
+                  icon: "fluent-mdl2/user-gauge",
+                  title: "设计师工作负载",
+                  showLink: true,
+                  rank: 12
+                },
+                children: [
+                  {
+                    path: "/workload/index",
+                    name: "设计师工作负载",
+                    component: () => import("@/views/workload/index.vue"),
+                    meta: {
+                      title: "设计师工作负载",
+                      icon: "fluent-mdl2/user-gauge"
+                    }
+                  }
+                ]
+              });
+            }
+            //#endregion
+
             handleAsyncRoutes(cloneDeep(routesTemp));
             resolve(router);
           } else {

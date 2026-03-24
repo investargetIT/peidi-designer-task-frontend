@@ -14,9 +14,17 @@ import dayjs from "dayjs";
 import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
 import BxDetail from "~icons/bx/detail";
 import DialogCard from "./components/dialogCard/index.vue";
+import {
+  Roles,
+  isAdmin,
+  hasManageBoardPermission
+} from "@/views/manageBoard/config/permission";
+import { storageLocal } from "@pureadmin/utils";
 import { useRoute } from "vue-router"; // 引入 useRoute
 
 const route = useRoute(); // 使用 useRoute 获取当前路由信息
+
+const USER_INFO: any = storageLocal().getItem("dataSource");
 
 // 获取 URL 查询参数并设置到搜索表单中
 const initSearchParamsFromUrl = () => {
@@ -58,7 +66,12 @@ const searchForm: any = reactive({
     dayjs().startOf("month").format("YYYY-MM-DD"),
     dayjs().endOf("month").format("YYYY-MM-DD")
   ],
-  assignedToName: "",
+  createUserName: hasManageBoardPermission(USER_INFO?.id, Roles.R2)
+    ? USER_INFO?.username
+    : "",
+  assignedToName: hasManageBoardPermission(USER_INFO?.id, Roles.R3)
+    ? USER_INFO?.username
+    : "",
   status: "",
   priority: "",
   usageScenario: "",
@@ -74,6 +87,13 @@ const formatSearchStr = () => {
         dayjs(searchForm.createAtRange[0]).format("YYYY-MM-DDT00:00:00"),
         dayjs(searchForm.createAtRange[1]).format("YYYY-MM-DDT23:59:59")
       ].join(",")
+    });
+  }
+  if (searchForm.createUserName) {
+    searchStr.push({
+      searchName: "createUserName",
+      searchType: "equals",
+      searchValue: `\"${searchForm.createUserName}\"`
     });
   }
   if (searchForm.assignedToName) {
@@ -256,11 +276,22 @@ onMounted(() => {
             end-placeholder="结束日期"
           />
         </el-form-item>
+
+        <el-form-item label="提交人" prop="createUserName">
+          <el-input
+            v-model="searchForm.createUserName"
+            placeholder="请输入提交人"
+            clearable
+            :disabled="hasManageBoardPermission(USER_INFO?.id, Roles.R2)"
+          />
+        </el-form-item>
+
         <el-form-item label="负责人" prop="assignedToName">
           <el-select
             v-model="searchForm.assignedToName"
             placeholder="请选择负责人"
             clearable
+            :disabled="hasManageBoardPermission(USER_INFO?.id, Roles.R3)"
           >
             <el-option
               v-for="item in designers"

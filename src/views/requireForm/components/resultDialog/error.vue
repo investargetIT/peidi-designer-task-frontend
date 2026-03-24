@@ -132,25 +132,28 @@ const handleConfirm = async () => {
                 resolution: formModal.way,
                 ...formModal
               },
-              () => {
-                visible.value = false;
+              (designerId, designerName) => {
+                // 添加任务必定是首次添加记录，不需要向前兼容
+                props.recordFn(
+                  {
+                    requestId: id,
+                    createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+                    userName: USER_INFO?.username || "",
+                    userId: USER_INFO?.id || null,
+                    descriptionExt: JSON.stringify({
+                      isRush: true,
+                      designerId,
+                      designerName
+                    }),
+                    content: JSON.stringify({
+                      fileList: newFileList
+                    })
+                  },
+                  () => {
+                    visible.value = false;
+                  }
+                );
               }
-            );
-            // 添加任务必定是首次添加记录，不需要向前兼容
-            props.recordFn(
-              {
-                requestId: id,
-                createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
-                userName: USER_INFO?.username || "",
-                userId: USER_INFO?.id || null,
-                descriptionExt: JSON.stringify({
-                  isRush: true
-                }),
-                content: JSON.stringify({
-                  fileList: newFileList
-                })
-              },
-              () => {}
             );
           }
         }

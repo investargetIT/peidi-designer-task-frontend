@@ -1,31 +1,15 @@
+import { Roles } from "@/views/manageBoard/config/permission";
+
 // 权限设置相关的工具函数
 
 // 管理员 id
 const ADMIN_USER_IDS = [
-  //#region 经委会
-  // Nikki
-  "1926449443739601215",
-  // 杨杰
-  "1926449443739598912",
-  // 任琪琳
-  "1870023775338692610",
-  // 李胤
-  "1871107779173351425",
-  //#endregion
-  // 陈董
-  "1926449443739598857",
-  // Lucy 廖丽萍
-  "1869688287188811777",
-  // Selina 黄琳艳
-  "1926449443739598850",
-  // HR 董思萍
-  "1901573877226057730",
   // 廖佳晨
   "1874741663670775810"
 ];
 
 // 开发人员 id
-const DEV_USER_IDS = [
+export const DEV_USER_IDS = [
   // 沈皓钰
   "1926449443739600965",
   // 王家琦
@@ -43,7 +27,9 @@ const DEV_USER_IDS = [
  */
 export const permissionSettings = {
   // 管理看板 模块权限
-  manageBoard: [...DEV_USER_IDS]
+  manageBoard: [...Roles.R1, ...Roles.R2, ...Roles.R3, ...DEV_USER_IDS],
+  // 设计师工作负载 模块权限
+  workload: [...Roles.R1, ...DEV_USER_IDS]
 };
 
 /**

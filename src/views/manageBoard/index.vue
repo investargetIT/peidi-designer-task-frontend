@@ -7,10 +7,18 @@ import {
 import { dayjs, ElMessage } from "element-plus";
 import { onMounted, ref, watch } from "vue";
 import { calculatePercentage } from "./utils";
+import { is, storageLocal } from "@pureadmin/utils";
+import {
+  Roles,
+  hasManageBoardPermission,
+  isAdmin
+} from "@/views/manageBoard/config/permission";
 
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
+const USER_ID = (storageLocal().getItem("dataSource") as any)?.id;
 
 // 源数据 用于数据处理
 const designTaskList = ref([]);
@@ -136,8 +144,12 @@ const getSupportRatioColor = ratio => {
   return ratio >= 80 ? "bg-red-500" : "bg-blue-500";
 };
 
-const formatSearchStr = (type: "task" | "record") => {
+const formatSearchStr = (type: "task" | "record" | "designer") => {
   const searchStr = [];
+
+  const isR2 = Roles.R2.includes(USER_ID);
+  const isR3 = Roles.R3.includes(USER_ID);
+
   if (type === "task") {
     if (timePeriod.value === "week") {
       searchStr.push({
@@ -158,6 +170,20 @@ const formatSearchStr = (type: "task" | "record") => {
         ].join(",")
       });
     }
+    if (isR3) {
+      searchStr.push({
+        searchName: "assignedTo",
+        searchType: "equals",
+        searchValue: `${USER_ID}`
+      });
+    }
+    if (isR2) {
+      searchStr.push({
+        searchName: "createUserId",
+        searchType: "equals",
+        searchValue: `${USER_ID}`
+      });
+    }
   }
   if (type === "record") {
     searchStr.push({
@@ -171,8 +197,36 @@ const formatSearchStr = (type: "task" | "record") => {
     searchStr.push({
       searchName: "descriptionExt",
       searchType: "like",
-      searchValue: '"isRush":true'
+      searchValue: `"isRush":true`
     });
+    if (isR3) {
+      searchStr.push({
+        searchName: "descriptionExt",
+        searchType: "like",
+        searchValue: `"designerId":"${USER_ID}"`
+      });
+    }
+    if (isR2) {
+      searchStr.push({
+        searchName: "userId",
+        searchType: "equals",
+        searchValue: `${USER_ID}`
+      });
+    }
+  }
+  if (type === "designer") {
+    searchStr.push({
+      searchName: "status",
+      searchType: "equals",
+      searchValue: '"active"'
+    });
+    if (isR3) {
+      searchStr.push({
+        searchName: "userId",
+        searchType: "equals",
+        searchValue: `${USER_ID}`
+      });
+    }
   }
 
   return JSON.stringify(searchStr);
@@ -232,11 +286,7 @@ const fetchDesignerWorkloads = () => {
   return getPmDesignersPage({
     pageNo: 1,
     pageSize: 10e3,
-    searchStr: JSON.stringify({
-      searchName: "status",
-      searchType: "equals",
-      searchValue: '"active"'
-    })
+    searchStr: formatSearchStr("designer")
   })
     .then((res: any) => {
       if (res?.code === 200) {
@@ -513,6 +563,12 @@ const handleClickCard = item => {
     `/detailTable/index?priority=${item.priority}&timePeriod=${timePeriod.value}`
   );
 };
+
+const handleWorkloadClick = () => {
+  if (isAdmin(USER_ID) || hasManageBoardPermission(USER_ID, Roles.R1)) {
+    router.push(`/workload/index`);
+  }
+};
 </script>
 
 <template>
@@ -566,7 +622,12 @@ const handleClickCard = item => {
         </div>
 
         <!-- 需求结构分布 -->
-        <div class="bg-white rounded-lg shadow-sm p-5">
+        <div
+          class="bg-white rounded-lg shadow-sm p-5"
+          v-if="
+            isAdmin(USER_ID) || !hasManageBoardPermission(USER_ID, Roles.R3)
+          "
+        >
           <div class="text-lg font-medium text-[#0a0a0a] mb-4">
             需求结构分布
           </div>
@@ -635,7 +696,14 @@ const handleClickCard = item => {
         </div>
 
         <!-- 设计师资源与负载 -->
-        <div class="bg-white rounded-lg shadow-sm p-5">
+
+        <div
+          class="bg-white rounded-lg shadow-sm p-5 cursor-pointer"
+          v-if="
+            isAdmin(USER_ID) || !hasManageBoardPermission(USER_ID, Roles.R2)
+          "
+          @click="handleWorkloadClick"
+        >
           <div class="text-lg font-medium text-[#0a0a0a] mb-4">
             设计师资源与负载（本月）
           </div>
