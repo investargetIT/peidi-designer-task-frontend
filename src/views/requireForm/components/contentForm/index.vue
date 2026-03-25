@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from "vue";
-import { User } from "@element-plus/icons-vue";
+import { Download, User } from "@element-plus/icons-vue";
 import { ElMessage, type FormRules } from "element-plus";
 import RiStackLine from "~icons/ri/stack-line";
 import TablerTarget from "~icons/tabler/target";
@@ -8,10 +8,12 @@ import GrommetIconsInfo from "~icons/grommet-icons/info";
 import MingcuteNotificationLine from "~icons/mingcute/notification-line";
 import RiUser3Line from "~icons/ri/user-3-line";
 import LetsIconsUpload from "~icons/lets-icons/upload";
+import TdesignFileAttachment from "~icons/tdesign/file-attachment";
 import dd from "dingtalk-jsapi";
 import { SYSTEM_CONFIG, DESIGN_SECOND_CATEGORY_MAPPING } from "@/constants";
 import { ddAuthFun } from "../../utils/ddAuth";
 import Upload from "./upload.vue";
+import { TEMPLATE_ATTACHMENT_ENUM } from "../../utils/config";
 
 const props = defineProps({
   addFn: {
@@ -76,6 +78,20 @@ const formRules: FormRules = {
   ]
 };
 
+// 计算属性：获取当前分类对应的模板附件
+const templateAttachment = computed(() => {
+  if (!formModel.category) return null;
+
+  const fileName = TEMPLATE_ATTACHMENT_ENUM[formModel.category];
+  if (fileName) {
+    return {
+      name: fileName,
+      url: `/static/${fileName}`
+    };
+  }
+  return null;
+});
+
 // 计算属性：根据一级分类获取对应的二级分类选项
 const secondCategoryOptions = computed(() => {
   if (!formModel.category) return [];
@@ -121,6 +137,20 @@ const handleTaskTypeChange = (val: any) => {
       formModel.estimatedHours = item.standardPeriod * 8;
     }
   });
+};
+
+// 下载模板文件
+const downloadTemplate = (fileName: string) => {
+  let baseUrl = window.location.href.split("#")[0];
+  // console.log("baseUrl", baseUrl);
+
+  const link = document.createElement("a");
+  link.href = `${baseUrl}/static/${fileName}`;
+  link.download = fileName;
+  link.target = "_blank";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 // 提交表单
@@ -498,10 +528,27 @@ onMounted(() => {
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-4"
               >
                 <el-icon :size="16">
-                  <LetsIconsUpload />
+                  <TdesignFileAttachment />
                 </el-icon>
-                文件上传
+                文件相关
               </div>
+
+              <el-form-item label="模板下载" prop="">
+                <div v-if="templateAttachment" class="w-full">
+                  <el-button
+                    type="primary"
+                    :icon="Download"
+                    link
+                    @click="downloadTemplate(templateAttachment.name)"
+                  >
+                    {{ templateAttachment.name }}
+                  </el-button>
+                </div>
+                <div v-else class="text-sm text-gray-500">
+                  该类型暂无模板附件
+                </div>
+              </el-form-item>
+
               <el-form-item label="需求文件" prop="uploadedFiles">
                 <Upload v-model="formModel.uploadedFiles" />
               </el-form-item>
