@@ -77,25 +77,29 @@ const demandDistribution = ref<any>({
 // 四象限任务数
 const quadrantTasks = ref([
   {
-    title: "重要且紧急（极高）",
+    // title: "重要且紧急（极高）",
+    title: "立即处理",
     value: 0,
     color: "#F4F5FA",
     priority: 4
   },
   {
-    title: "不重要但紧急（高）",
+    // title: "不重要但紧急（高）",
+    title: "快速处理",
     value: 0,
     color: "#FFF7EA",
     priority: 3
   },
   {
-    title: "重要不紧急（中）",
+    // title: "重要不紧急（中）",
+    title: "计划处理",
     value: 0,
     color: "#E9EFFD",
     priority: 2
   },
   {
-    title: "不重要不紧急（低）",
+    // title: "不重要不紧急（低）",
+    title: "常规处理",
     value: 0,
     color: "#F0F8FA",
     priority: 1
@@ -470,25 +474,25 @@ watch(
       function calculatePriorityOverview() {
         const quadrantTasksTemp = ref([
           {
-            title: "重要且紧急（极高）",
+            title: "立即处理",
             value: newDesignTaskList.filter(task => task.priority === 4).length,
             color: "#F4F5FA",
             priority: 4
           },
           {
-            title: "不重要但紧急（高）",
+            title: "快速处理",
             value: newDesignTaskList.filter(task => task.priority === 3).length,
             color: "#FFF7EA",
             priority: 3
           },
           {
-            title: "重要不紧急（中）",
+            title: "计划处理",
             value: newDesignTaskList.filter(task => task.priority === 2).length,
             color: "#E9EFFD",
             priority: 2
           },
           {
-            title: "不重要不紧急（低）",
+            title: "常规处理",
             value: newDesignTaskList.filter(task => task.priority === 1).length,
             color: "#F0F8FA",
             priority: 1
