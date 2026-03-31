@@ -28,9 +28,9 @@ const USER_INFO: any = storageLocal().getItem("dataSource");
 
 // 获取 URL 查询参数并设置到搜索表单中
 const initSearchParamsFromUrl = () => {
-  const { priority, timePeriod } = route.query;
+  const { priority, timePeriod, core } = route.query;
 
-  if (priority !== undefined) {
+  if (priority !== undefined && priority !== "undefined") {
     searchForm.priority = Number(priority);
   }
 
@@ -42,12 +42,14 @@ const initSearchParamsFromUrl = () => {
     ];
   }
 
-  // 如果两个参数都存在则触发搜索
-  if (priority !== undefined && timePeriod !== undefined) {
-    nextTick(() => {
-      fetchDesignTaskList();
-    });
+  console.log(core);
+  if (core !== undefined && core !== "undefined") {
+    searchForm.status = core;
   }
+
+  nextTick(() => {
+    fetchDesignTaskList();
+  });
 };
 
 const detailTableData = ref([]);

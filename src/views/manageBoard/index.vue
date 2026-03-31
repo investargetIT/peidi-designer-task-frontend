@@ -561,11 +561,25 @@ watch(
   }
 );
 
-const handleClickCard = item => {
+const handleClickCard = (type, item) => {
   // console.log("点击了卡片:", item);
-  router.push(
-    `/detailTable/index?priority=${item.priority}&timePeriod=${timePeriod.value}`
-  );
+  if (type === "priority") {
+    router.push(
+      `/detailTable/index?priority=${item.priority}&timePeriod=${timePeriod.value}`
+    );
+  }
+  if (type === "core") {
+    console.log("点击了核心任务:", item);
+    let coreTaskId = undefined;
+    if (item.title === "已完成数") {
+      coreTaskId = "COMPLETED";
+    } else if (item.title === "插单次数") {
+      coreTaskId = "RUSH";
+    }
+    router.push(
+      `/detailTable/index?core=${coreTaskId}&timePeriod=${timePeriod.value}`
+    );
+  }
 };
 
 const handleWorkloadClick = () => {
@@ -614,14 +628,19 @@ const handleWorkloadClick = () => {
           </div>
           <div class="grid grid-cols-4 gap-4">
             <div
-              class="text-center p-3 bg-gray-50 rounded"
+              class="text-center p-3 bg-gray-50 rounded cursor-pointer"
               v-for="item in coreMetrics"
+              :key="item.title"
+              @click="handleClickCard('core', item)"
             >
               <div class="text-sm text-[#4A5565] mb-1">{{ item.title }}</div>
               <div class="text-xl font-bold text-[#0a0a0a]">
                 {{ item.value }}
               </div>
             </div>
+          </div>
+          <div class="text-xs text-[#4A5565] mt-1">
+            ⓘ 点击象限可跳转到对应任务列表
           </div>
         </div>
 
@@ -800,7 +819,7 @@ const handleWorkloadClick = () => {
               :style="{ backgroundColor: item.color }"
               v-for="item in quadrantTasks"
               :key="item.title"
-              @click="handleClickCard(item)"
+              @click="handleClickCard('priority', item)"
             >
               <div class="text-sm text-[#4A5565]">{{ item.title }}</div>
               <div class="text-lg font-bold text-[#0a0a0a] mt-1">
