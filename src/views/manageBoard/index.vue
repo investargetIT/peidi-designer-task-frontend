@@ -365,7 +365,7 @@ watch(
         coreMetrics.value = [
           {
             title: "新需求数",
-            value: totalTasks
+            value: totalTasks - completedTasks
           },
           {
             title: "已完成数",

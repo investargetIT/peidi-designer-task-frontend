@@ -1,10 +1,10 @@
 // src/constants/design.ts - 设计配置常量
 export const DESIGN_ENUM = {
   PRIORITY: {
-    1: "低",
-    2: "中",
-    3: "高",
-    4: "极高"
+    1: "常规处理",
+    2: "计划处理",
+    3: "快速处理",
+    4: "立即处理"
   },
   ALLOCATION_STATUS: {
     ALLOCATABLE: "可直接分配",
@@ -41,22 +41,22 @@ export const DESIGN_ENUM = {
 export const DESIGN_ENUM_OPTIONS = {
   PRIORITY: [
     {
-      label: "低",
+      label: "常规处理",
       value: 1,
       colorClass: "bg-blue-200"
     },
     {
-      label: "中",
+      label: "计划处理",
       value: 2,
       colorClass: "bg-yellow-300"
     },
     {
-      label: "高",
+      label: "快速处理",
       value: 3,
       colorClass: "bg-orange-400"
     },
     {
-      label: "极高",
+      label: "立即处理",
       value: 4,
       colorClass: "bg-red-500"
     }
