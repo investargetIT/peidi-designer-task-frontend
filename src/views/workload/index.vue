@@ -97,12 +97,12 @@ const fetchDesignerWorkloads = () => {
             workloads: [
               {
                 title: "主职能工时",
-                current: item.primaryUsed,
+                current: item.primaryHours,
                 max: item.primaryLimit
               },
               {
                 title: "支援工时",
-                current: item.supportUsed,
+                current: item.supportHours,
                 max: item.supportLimit
               }
             ],

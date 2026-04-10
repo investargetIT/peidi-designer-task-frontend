@@ -211,9 +211,9 @@ watch(
   () => {
     fetchDesignTaskList();
   },
-  {
-    immediate: true
-  }
+  // {
+  //   immediate: true
+  // }
 );
 
 //#region 展示处理相关逻辑

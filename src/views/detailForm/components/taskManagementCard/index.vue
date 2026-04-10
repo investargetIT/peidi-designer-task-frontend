@@ -27,9 +27,9 @@ const assignedTo = ref(""); // 负责人ID
 
 //#region 判断选项是否应该被禁用的函数
 /* 
-  1. 草稿-待分配-待审核-进行中-已完成待审核-已完成
-  2. 草稿-待分配-待审核-已外包-已完成待审核-已完成
-  3. 草稿-待分配-待审核-插单处理-已完成待审核-已完成
+  1. 草稿-待分配-待确认-进行中-已完成待审核-已完成
+  2. 草稿-待分配-待确认-已外包-已完成待审核-已完成
+  3. 草稿-待分配-待确认-插单处理-已完成待审核-已完成
   4. 已关闭一直禁用，有额外的操作按钮
  */
 const isOptionDisabled = (optionValue: string) => {
@@ -46,7 +46,7 @@ const isOptionDisabled = (optionValue: string) => {
     DRAFT: ["PENDING"],
     // 待分配
     PENDING: ["REVIEW"],
-    // 待审核
+    // 待确认
     REVIEW: ["IN_PROGRESS"],
     // 进行中
     IN_PROGRESS: ["COMPLETED_REVIEW"],

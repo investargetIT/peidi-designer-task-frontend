@@ -23,7 +23,7 @@ defineExpose({
       >
         <p class="font-bold mb-[10px]">目前任务需求状态可改变的顺序为：</p>
         <ul class="list-disc list-inside space-y-1">
-          <li class="ml-4">1. 草稿-待分配-待审核-进行中-已完成待审核-已完成</li>
+          <li class="ml-4">1. 草稿-待分配-待确认-进行中-已完成待审核-已完成</li>
           <li class="ml-4">2. 已外包-已完成待审核-已完成</li>
           <li class="ml-4">3. 插单处理-已完成待审核-已完成</li>
         </ul>

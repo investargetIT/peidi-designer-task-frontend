@@ -73,7 +73,7 @@ export const DESIGN_ENUM_OPTIONS = {
       colorClass: "bg-blue-300"
     },
     {
-      label: "待审核",
+      label: "待确认",
       value: "REVIEW",
       colorClass: "bg-blue-400"
     },

@@ -41,20 +41,24 @@ const switchTimePeriod = (period: "week" | "month") => {
 // 核心指标数据
 const coreMetrics = ref([
   {
-    title: "新需求数",
-    value: 0
+    title: "待确认数",
+    value: 0,
+    tooltip: "跳转到待确认任务"
+  },
+  {
+    title: "进行中数",
+    value: 0,
+    tooltip: "跳转到进行中任务"
   },
   {
     title: "已完成数",
-    value: 0
-  },
-  {
-    title: "插单次数",
-    value: 0
+    value: 0,
+    tooltip: "跳转到已完成任务"
   },
   {
     title: "延期任务",
-    value: 0
+    value: 0,
+    tooltip: "跳转到延期任务"
   }
 ]);
 
@@ -353,6 +357,14 @@ watch(
         const completedTasks = newDesignTaskList.filter(
           task => task.status === "COMPLETED"
         ).length;
+        // 待确认
+        const pendingTasks = newDesignTaskList.filter(
+          task => task.status === "REVIEW"
+        ).length;
+        // 进行中
+        const inProgressTasks = newDesignTaskList.filter(
+          task => task.status === "IN_PROGRESS"
+        ).length;
         // 插单任务：
         const insertionTasks = newDesignRecordList.length;
         // 延期任务：完成时间晚于截止日期 || 没有完成时间而且当前时间晚于截止日期
@@ -364,20 +376,24 @@ watch(
 
         coreMetrics.value = [
           {
-            title: "新需求数",
-            value: totalTasks - completedTasks
+            title: "待确认数",
+            value: pendingTasks,
+            tooltip: "跳转到待确认任务"
+          },
+          {
+            title: "进行中数",
+            value: inProgressTasks,
+            tooltip: "跳转到进行中任务"
           },
           {
             title: "已完成数",
-            value: completedTasks
-          },
-          {
-            title: "插单次数",
-            value: insertionTasks
+            value: completedTasks,
+            tooltip: "跳转到已完成任务"
           },
           {
             title: "延期任务",
-            value: delayedTasks
+            value: delayedTasks,
+            tooltip: "跳转到任务列表" // 暂无延期状态
           }
         ];
       }
@@ -575,6 +591,10 @@ const handleClickCard = (type, item) => {
       coreTaskId = "COMPLETED";
     } else if (item.title === "插单次数") {
       coreTaskId = "RUSH";
+    } else if (item.title === "进行中数") {
+      coreTaskId = "IN_PROGRESS";
+    } else if (item.title === "待确认数") {
+      coreTaskId = "REVIEW";
     }
     router.push(
       `/detailTable/index?core=${coreTaskId}&timePeriod=${timePeriod.value}`
@@ -633,12 +653,24 @@ const handleWorkloadClick = () => {
               :key="item.title"
               @click="handleClickCard('core', item)"
             >
-              <div class="text-sm text-[#4A5565] mb-1">{{ item.title }}</div>
-              <div class="text-xl font-bold text-[#0a0a0a]">
-                {{ item.value }}
-              </div>
+              <el-tooltip
+                effect="dark"
+                :content="item.tooltip"
+                placement="top"
+                :show-after="300"
+              >
+                <div>
+                  <div class="text-sm text-[#4A5565] mb-1">
+                    {{ item.title }}
+                  </div>
+                  <div class="text-xl font-bold text-[#0a0a0a]">
+                    {{ item.value }}
+                  </div>
+                </div>
+              </el-tooltip>
             </div>
           </div>
+
           <div class="text-xs text-[#4A5565] mt-1">
             ⓘ 点击象限可跳转到对应任务列表
           </div>
