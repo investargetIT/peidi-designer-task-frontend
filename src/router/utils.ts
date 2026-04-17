@@ -227,32 +227,60 @@ function initRouter() {
             // 处理成功逻辑 拿到id
             const userId = res?.data?.id;
             const routesTemp = [];
-            //#region 判断douyin权限
-            // if (hasPermission(userId, "douyin")) {
-            //   routesTemp.push({
-            //     path: "/douyin",
-            //     name: "DouyinLayout",
-            //     redirect: "/douyin/index",
-            //     component: Layout,
-            //     meta: {
-            //       icon: "ri/tiktok-line",
-            //       title: "抖音数据需求",
-            //       showLink: true,
-            //       rank: 12
-            //     },
-            //     children: [
-            //       {
-            //         path: "/douyin/index",
-            //         name: "DouyinIndex",
-            //         component: () => import("@/views/douyin/index.vue"),
-            //         meta: {
-            //           title: "抖音数据需求",
-            //           showLink: true
-            //         }
-            //       }
-            //     ]
-            //   });
-            // }
+            //#region 判断管理看板权限
+            if (hasPermission(userId, "manageBoard")) {
+              routesTemp.push({
+                path: "/manageBoard",
+                name: "ManageBoardLayout",
+                redirect: "/manageBoard/index",
+                component: Layout,
+                meta: {
+                  icon: "tdesign/app",
+                  title: "管理看板",
+                  showLink: true,
+                  rank: 11
+                },
+                children: [
+                  {
+                    path: "/manageBoard/index",
+                    name: "管理看板",
+                    component: () => import("@/views/manageBoard/index.vue"),
+                    meta: {
+                      title: "管理看板",
+                      icon: "tdesign/app"
+                    }
+                  }
+                ]
+              });
+            }
+            //#endregion
+
+            //#region 判断设计师工作负载权限
+            if (hasPermission(userId, "workload")) {
+              routesTemp.push({
+                path: "/workload",
+                name: "WorkloadLayout",
+                redirect: "/workload/index",
+                component: Layout,
+                meta: {
+                  icon: "fluent-mdl2/user-gauge",
+                  title: "设计师工作负载",
+                  showLink: true,
+                  rank: 12
+                },
+                children: [
+                  {
+                    path: "/workload/index",
+                    name: "设计师工作负载",
+                    component: () => import("@/views/workload/index.vue"),
+                    meta: {
+                      title: "设计师工作负载",
+                      icon: "fluent-mdl2/user-gauge"
+                    }
+                  }
+                ]
+              });
+            }
             //#endregion
 
             handleAsyncRoutes(cloneDeep(routesTemp));

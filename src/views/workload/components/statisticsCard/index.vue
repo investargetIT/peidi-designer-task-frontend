@@ -8,36 +8,31 @@ const props = defineProps({
   }
 });
 
-const statusItems = [
+const statusItems = computed(() => [
   {
     id: "active",
     label: "在岗",
-    count: 0,
+    count: props.statisticsInfo.onDutyPeople,
     colorClass: "bg-blue-500"
   },
   {
     id: "primary-duty",
     label: "主职责中",
-    count: 0,
+    count: props.statisticsInfo.primaryPeople,
     colorClass: "bg-amber-500"
   },
   {
     id: "support-full",
     label: "支援满载",
-    count: 0,
+    count: props.statisticsInfo.supportFullPeople,
     colorClass: "bg-red-500"
   }
-];
+]);
 
 const percentage = computed(() => {
   const { totalHours, maxHours } = props.statisticsInfo;
   return Math.round((totalHours / maxHours) * 100);
 });
-
-const getStatusClass = (id: string) => {
-  const item = statusItems.find(item => item.id === id);
-  return item?.colorClass || "bg-gray-300";
-};
 </script>
 
 <template>
@@ -47,7 +42,10 @@ const getStatusClass = (id: string) => {
       <div>
         <h2 class="text-lg font-semibold text-gray-800">设计师工作负载</h2>
         <p class="text-sm text-gray-600">
-          每月总工时 220h = 主职能 176h + 支援 44h
+          <span>每月总工时 220h = 主职能 176h + 支援 44h，</span>
+          <span>
+            系统按主职能 / 支援工时拆分负载，用于判断是否还能承接新任务。
+          </span>
         </p>
       </div>
 
@@ -67,9 +65,16 @@ const getStatusClass = (id: string) => {
     <div
       class="flex flex-col gap-6 rounded-xl border py-6 shadow-sm bg-gray-50"
     >
-      <div class="px-6 pt-4">
-        <div class="flex items-center justify-between mb-2">
+      <div class="px-6">
+        <p class="text-sm font-medium text-gray-700 text-right">
+          本月主职能已用 {{ props.statisticsInfo.primaryTotalHours }}h |
+          支援已用 {{ props.statisticsInfo.supportTotalHours }}h | 剩余总容量
+          {{ props.statisticsInfo.maxHours - props.statisticsInfo.totalHours }}h
+        </p>
+
+        <div class="flex items-center justify-between mb-2 mt-1">
           <span class="text-sm font-medium text-gray-700">团队本月工时</span>
+
           <span class="text-sm text-gray-600">
             {{ props.statisticsInfo.totalHours }}h /
             {{ props.statisticsInfo.maxHours }}h （{{ percentage }}%）

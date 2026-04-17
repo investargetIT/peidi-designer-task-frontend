@@ -18,7 +18,7 @@ const getProgressPercentage = (current: number, max: number) => {
 
 const getProgressColor = (title: string, percentage: number) => {
   if (title.includes("支援")) {
-    return percentage >= 100 ? "bg-amber-500" : "bg-blue-500";
+    return "bg-amber-500";
   }
   return "bg-blue-500";
 };
@@ -30,6 +30,33 @@ const getIconComponent = (title: string) => {
     return "users";
   }
   return "";
+};
+
+// 新增：计算总体工时进度条的相关数据
+const getTotalWorkloadData = () => {
+  const primaryWorkload = props.designer.workloads.find(w =>
+    w.title.includes("主职能")
+  );
+  const supportWorkload = props.designer.workloads.find(w =>
+    w.title.includes("支援")
+  );
+
+  if (!primaryWorkload || !supportWorkload) return null;
+
+  const primaryCurrent = primaryWorkload.current || 0;
+  const supportCurrent = supportWorkload.current || 0;
+  const totalCurrent = primaryCurrent + supportCurrent;
+  const totalMax = (primaryWorkload.max || 0) + (supportWorkload.max || 0);
+
+  return {
+    primaryCurrent,
+    supportCurrent,
+    totalCurrent,
+    totalMax,
+    primaryPercentage: Math.round((primaryCurrent / totalMax) * 100),
+    supportPercentage: Math.round((supportCurrent / totalMax) * 100),
+    totalPercentage: Math.round((totalCurrent / totalMax) * 100)
+  };
 };
 </script>
 
@@ -69,6 +96,78 @@ const getIconComponent = (title: string) => {
             {{ skill.type === "primary" ? "主:" : "援:" }} {{ skill.label }}
           </span>
         </div>
+      </div>
+
+      <!-- 累计工时进度条 -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="flex items-center gap-1.5 text-gray-600">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-3.5 w-3.5"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            累计工时 ({{ props.designer.cumulative.primaryTotal || 0 }}h |
+            {{ props.designer.cumulative.supportTotal || 0 }}h)
+          </span>
+          <span class="font-medium">
+            {{
+              (props.designer.cumulative.primaryTotal || 0) +
+              (props.designer.cumulative.supportTotal || 0)
+            }}h / 220h
+          </span>
+        </div>
+
+        <div
+          class="relative w-full overflow-hidden rounded-full h-2 bg-gray-200"
+        >
+          <!-- 蓝色主职能工时部分 -->
+          <div
+            class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-300"
+            :style="{
+              width: `${((props.designer.cumulative.primaryTotal || 0) / Math.max(props.designer.cumulative.maxTotal, 220)) * 100}%`
+            }"
+          ></div>
+          <!-- 橙色支援工时部分 -->
+          <div
+            class="absolute top-0 left-0 h-full bg-amber-500 transition-all duration-300"
+            :style="{
+              left: `${((props.designer.cumulative.primaryTotal || 0) / Math.max(props.designer.cumulative.maxTotal, 220)) * 100}%`,
+              width: `${((props.designer.cumulative.supportTotal || 0) / Math.max(props.designer.cumulative.maxTotal, 220)) * 100}%`
+            }"
+          ></div>
+        </div>
+
+        <!-- <div class="flex justify-between text-xs text-gray-600">
+          <span>
+            使用率：{{
+              Math.round(
+                (((props.designer.cumulative.primaryTotal || 0) +
+                  (props.designer.cumulative.supportTotal || 0)) /
+                  (props.designer.cumulative.maxTotal || 220)) *
+                  100
+              )
+            }}%
+          </span>
+          <span
+            >剩余:
+            {{
+              (props.designer.cumulative.maxTotal || 220) -
+              ((props.designer.cumulative.primaryTotal || 0) +
+                (props.designer.cumulative.supportTotal || 0))
+            }}h</span
+          >
+        </div> -->
       </div>
 
       <!-- Workload Sections -->

@@ -44,6 +44,20 @@ export interface DesignTaskCreateParams {
   usageScenario: string;
   /** ✅创建用户ID */
   createUserId: number | string;
+
+  // ===== 新增字段 =====
+  /** 实际工时 */
+  actualHours?: number;
+  /** 创建时间 */
+  createAt?: string;
+  /** 创建用户名 */
+  createUserName?: string;
+  /** 结束时间 */
+  endAt?: string;
+  /** 任务ID */
+  id?: number;
+  /** 开始时间 */
+  startAt?: string;
 }
 export const postPmDesignRequestsNew = (data: DesignTaskCreateParams) => {
   return http.request("post", commonUrlApi("/pm/design/requests/new"), {
@@ -141,8 +155,8 @@ export interface DesignerWorkload {
 }
 export const getPmDesignersPage = (
   params: PageConfig & {
-    month?: string;
-    year?: string;
+    month?: number;
+    year?: number;
   }
 ) => {
   return http.request("get", commonUrlApi("/pm/design/designers/page"), {
@@ -257,5 +271,30 @@ export const getPmDesignRecordsDetail = (params: { requestId: string }) => {
     "get",
     commonUrlApi(`/pm/design/record/${params.requestId}`),
     {}
+  );
+};
+
+/** 获取记录分页数据 */
+export const getPmDesignRecordsPage = (params: PageConfig) => {
+  return http.request("get", commonUrlApi("/pm/design/record/page"), {
+    params
+  });
+};
+
+/** 增加需求关注 */
+export interface DesignRequestsAttentionNewItem {
+  id?: number | string;
+  requestId: number | string;
+  dingId: number | string;
+}
+export const postPmDesignRequestsAttentionNew = (
+  data: Array<DesignRequestsAttentionNewItem>
+) => {
+  return http.request(
+    "post",
+    commonUrlApi(`/pm/design/requests/attention/new`),
+    {
+      data
+    }
   );
 };

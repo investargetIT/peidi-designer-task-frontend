@@ -10,14 +10,24 @@ import {
   getPmDesignRequestsDetail,
   postPmDesignRequestsUpdate,
   getPmDesignRecordsDetail,
-  postPmDesignRecordNew
+  postPmDesignRecordNew,
+  getPmDesignersPage
 } from "@/api/design";
 import { ElMessage } from "element-plus";
-import { onMounted, ref } from "vue";
-import { DESIGN_ENUM } from "@/constants/design";
+import { inject, onMounted, ref, watch } from "vue";
+import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
 
-const route = useRoute();
-const requestId: string = route.query.requestId as string;
+// 从父组件注入获取需求列表的方法
+const synchronousUpdate = inject<() => Promise<void>>("fetchDesignTaskList");
+
+const props = defineProps({
+  resquestId: {
+    type: String,
+    required: true
+  }
+});
+
+const designers = ref([]);
 
 const taskDetail = ref(
   // {
@@ -32,7 +42,8 @@ const taskDetail = ref(
   //     submitter: "产品部王经理",
   //     priority: "极高",
   //     status: "进行中",
-  //     statusSource: "IN_PROGRESS"
+  //     statusSource: "IN_PROGRESS",
+  //     createAt: "2024/1/15"
   //   },
   //   workInfo: {
   //     assignee: "尤俊力",
@@ -55,9 +66,11 @@ const taskDetail = ref(
       submitter: "",
       priority: "",
       status: "",
-      statusSource: ""
+      statusSource: "",
+      createAt: ""
     },
     workInfo: {
+      assignedId: "",
       assignee: "",
       estimatedHours: null,
       actualHours: null,
@@ -81,11 +94,11 @@ const recordDetail = ref({
 
 //#region 请求相关
 const fetchTaskDetail = () => {
-  if (!requestId) {
+  if (!props.resquestId) {
     return;
   }
   getPmDesignRequestsDetail({
-    requestId: requestId
+    requestId: props.resquestId
   })
     .then((res: any) => {
       if (res?.code === 200) {
@@ -100,24 +113,32 @@ const fetchTaskDetail = () => {
             subType: resData.taskType,
             deadline: resData.deadline,
             usageScenario:
-              resData.usageScenario +
-              " " +
-              DESIGN_ENUM.USAGE_SCENARIO_MAP[resData.usageScenario],
+              DESIGN_ENUM_OPTIONS.USAGE_SCENARIO_MAP.find(
+                item => item.value === resData.usageScenario
+              )?.label || resData.usageScenario,
             impactRange:
-              resData.impactRange +
-              " " +
-              DESIGN_ENUM.IMPACT_RANGE_MAP[resData.impactRange],
+              DESIGN_ENUM_OPTIONS.IMPACT_RANGE_MAP.find(
+                item => item.value === resData.impactRange
+              )?.label || resData.impactRange,
             submitter: resData.createUserName,
-            priority: DESIGN_ENUM.PRIORITY[resData.priority],
-            status: DESIGN_ENUM.TASK_STATUS[resData.status],
-            statusSource: resData.status
+            priority:
+              DESIGN_ENUM_OPTIONS.PRIORITY.find(
+                item => item.value === resData.priority
+              )?.label || resData.priority,
+            status:
+              DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
+                item => item.value === resData.status
+              )?.label || resData.status,
+            statusSource: resData.status,
+            createAt: resData.createAt
           },
           workInfo: {
+            assignedId: resData.assignedTo,
             assignee: resData.assignedToName,
             estimatedHours: resData.estimatedHours,
-            actualHours: 0,
-            startTime: "2000/1/1 00:00:00",
-            endTime: "2000/1/1 00:00:00"
+            actualHours: resData.actualHours || 0,
+            startTime: resData.startAt,
+            endTime: resData.endAt
           },
           description: resData.description
         };
@@ -133,11 +154,11 @@ const fetchTaskDetail = () => {
 };
 
 const fetchRecordsDetail = () => {
-  if (!requestId) {
+  if (!props.resquestId) {
     return;
   }
   getPmDesignRecordsDetail({
-    requestId: requestId
+    requestId: props.resquestId
   })
     .then((res: any) => {
       if (res?.code === 200) {
@@ -146,7 +167,7 @@ const fetchRecordsDetail = () => {
           const detail = res?.data?.[res?.data?.length - 1];
           // console.log("任务记录:", detail);
           recordDetail.value = {
-            content: detail.content,
+            content: JSON.parse(detail.content || "{}"),
             createdAt: detail.createdAt,
             descriptionExt: JSON.parse(detail.descriptionExt || "{}"),
             endTime: detail.endTime,
@@ -156,6 +177,8 @@ const fetchRecordsDetail = () => {
             userId: detail.userId,
             userName: detail.userName
           };
+        } else {
+          recordDetail.value = {};
         }
       } else {
         ElMessage.error("获取任务记录失败:" + res?.msg);
@@ -166,7 +189,7 @@ const fetchRecordsDetail = () => {
     });
 };
 
-const fetchUpdateTaskDetail = (data: any) => {
+const fetchUpdateTaskDetail = (data: any, callback?: () => void) => {
   postPmDesignRequestsUpdate({
     ...data
   })
@@ -174,7 +197,9 @@ const fetchUpdateTaskDetail = (data: any) => {
       if (res?.code === 200) {
         // console.log("更新任务详情:", res);
         ElMessage.success("更新任务详情成功");
+        callback?.();
         fetchTaskDetail();
+        synchronousUpdate();
       } else {
         ElMessage.error("更新任务详情失败:" + res?.msg);
       }
@@ -191,7 +216,7 @@ const fetchNewRecordDetail = (data: any, callback?: () => void) => {
     .then((res: any) => {
       if (res?.code === 200) {
         ElMessage.success("创建任务记录成功");
-        // callback?.();
+        callback?.();
         fetchRecordsDetail();
       } else {
         ElMessage.error("创建任务记录失败:" + res?.msg);
@@ -202,17 +227,62 @@ const fetchNewRecordDetail = (data: any, callback?: () => void) => {
     });
 };
 
+const fetchDesignerWorkloads = () => {
+  return getPmDesignersPage({
+    pageNo: 1,
+    pageSize: 10e3,
+    searchStr: JSON.stringify({
+      searchName: "status",
+      searchType: "equals",
+      searchValue: '"active"'
+    })
+  })
+    .then((res: any) => {
+      if (res?.code === 200) {
+        // console.log("获取设计师工作负载:", res?.data?.records || []);
+
+        const records = res?.data?.records || [];
+        designers.value = records.map(item => ({
+          label: item.designerName,
+          value: item.userId
+        }));
+      } else {
+        console.error("获取设计师工作负载失败:", res?.msg);
+      }
+    })
+    .catch(error => {
+      console.error("获取设计师工作负载失败:", error.message);
+    });
+};
+
+watch(
+  () => props.resquestId,
+  (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+      fetchTaskDetail();
+      fetchRecordsDetail();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
 onMounted(() => {
-  fetchTaskDetail();
-  fetchRecordsDetail();
+  fetchDesignerWorkloads();
 });
 </script>
 
 <template>
   <div>
-    <div v-if="requestId">
+    <div v-if="props.resquestId">
       <div>
-        <HeaderCard :taskDetail="taskDetail" />
+        <HeaderCard
+          :taskDetail="taskDetail"
+          :recordDetail="recordDetail"
+          :updateFn="fetchUpdateTaskDetail"
+          :newRecordFn="fetchNewRecordDetail"
+        />
       </div>
 
       <div class="py-8">
@@ -222,10 +292,7 @@ onMounted(() => {
             <!-- Info Cards Grid -->
             <div class="grid gap-6 md:grid-cols-2">
               <BasicInfoCard :info="taskDetail.basicInfo" />
-              <WorkInfoCard
-                :info="taskDetail.workInfo"
-                :recordDetail="recordDetail"
-              />
+              <WorkInfoCard :info="taskDetail.workInfo" />
               <DescriptionCard
                 :description="taskDetail.description"
                 class="md:col-span-2"
@@ -234,6 +301,7 @@ onMounted(() => {
 
             <!-- Tabs Section -->
             <ModuleTabs
+              :taskDetail="taskDetail"
               :recordDetail="recordDetail"
               :newRecordFn="fetchNewRecordDetail"
             />
@@ -244,6 +312,7 @@ onMounted(() => {
             <TaskManagementCard
               :taskDetail="taskDetail"
               :recordDetail="recordDetail"
+              :designers="designers"
               :updateFn="fetchUpdateTaskDetail"
               :newRecordFn="fetchNewRecordDetail"
             />
@@ -254,7 +323,7 @@ onMounted(() => {
 
     <div v-else>
       <div class="text-center py-12">
-        <p class="text-gray-500 text-lg">暂无任务详情，请从需求看板查看</p>
+        <p class="text-gray-500 text-lg">暂无任务详情，请从任务列表查看</p>
       </div>
     </div>
   </div>

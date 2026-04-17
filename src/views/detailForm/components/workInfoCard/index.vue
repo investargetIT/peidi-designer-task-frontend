@@ -14,10 +14,6 @@ const props = defineProps({
   info: {
     type: Object as () => WorkInfo,
     required: true
-  },
-  recordDetail: {
-    type: Object as () => any,
-    required: true
   }
 });
 
@@ -51,8 +47,8 @@ const infoItems = ref([
 ]);
 
 watch(
-  () => [props.info, props.recordDetail],
-  ([newInfo, newRecordDetail]) => {
+  () => [props.info],
+  ([newInfo]) => {
     infoItems.value = [
       {
         icon: "user",
@@ -67,17 +63,17 @@ watch(
       {
         icon: "clock",
         label: "实际工时",
-        value: `${newRecordDetail?.descriptionExt?.actualHours || 0} 小时`
+        value: `${newInfo.actualHours} 小时`
       },
       {
         icon: "calendar",
         label: "开始时间",
-        value: newRecordDetail.startTime
+        value: newInfo.startTime || "暂无"
       },
       {
         icon: "calendar-check", // 新增完成时间图标
         label: "完成时间",
-        value: newRecordDetail.endTime
+        value: newInfo.endTime || "暂无"
       }
     ];
   },

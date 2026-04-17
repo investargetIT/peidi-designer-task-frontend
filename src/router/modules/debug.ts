@@ -25,5 +25,28 @@ export default [
         }
       }
     ]
+  },
+  {
+    path: "/dashboard",
+    name: "DashboardLayout",
+    redirect: "/dashboard/index",
+    component: Layout,
+    meta: {
+      icon: "tdesign/app",
+      title: "需求看板",
+      showLink: isDevEnv(),
+      rank: 1002
+    },
+    children: [
+      {
+        path: "/dashboard/index",
+        name: "Dashboard",
+        component: () => import("@/views/dashboard/index.vue"),
+        meta: {
+          title: "需求看板",
+          icon: "tdesign/app"
+        }
+      }
+    ]
   }
 ] satisfies Array<RouteConfigsTable>;

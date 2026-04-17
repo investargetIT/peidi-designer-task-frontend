@@ -9,18 +9,18 @@ interface RuleItem {
 const rules: RuleItem[] = [
   {
     id: 1,
-    title: "主职能设计师优先：",
-    content: "新需求优先分配给该类型的主职能设计师"
+    title: "主职能优先：",
+    content: "新需求优先分配给对口主职能设计师"
   },
   {
     id: 2,
-    title: "支援设计师接力：",
-    content: "主设计师无空余时，检查有支援职能的其他设计师"
+    title: "支援有上限：",
+    content: "支援任务工时占比最高 25%，超过后系统不再分配支援任务"
   },
   {
     id: 3,
-    title: "主职责优先原则：",
-    content: "支援设计师如有进行中的主职责项目，优先完成主职责"
+    title: "主职能优先完成：",
+    content: "主职能任务处于进行中时，支援任务自动排在其后"
   },
   {
     id: 4,
@@ -30,7 +30,7 @@ const rules: RuleItem[] = [
   {
     id: "!",
     title: "兜底方案：",
-    content: "所有设计师都无法承接时，需求方只能选择延期或外包",
+    content: "所有设计师负载无法承接时，系统引导需求方选择延期或外包",
     isWarning: true
   }
 ];

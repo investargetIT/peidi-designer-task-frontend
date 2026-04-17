@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import { ElMessage } from "element-plus";
+import { dayjs, ElMessage } from "element-plus";
+import { storageLocal } from "@pureadmin/utils";
+
+const USER_INFO: any = storageLocal().getItem("dataSource");
 
 const WAY_OPTIONS = [
   {
@@ -34,6 +37,10 @@ const props = defineProps({
     required: true
   },
   rushFn: {
+    type: Function,
+    required: true
+  },
+  recordFn: {
     type: Function,
     required: true
   }
@@ -117,7 +124,7 @@ const handleConfirm = async () => {
         {
           ...sourceFormData.value
         },
-        id => {
+        (id, newFileList) => {
           if (id) {
             props.rushFn(
               {
@@ -125,8 +132,27 @@ const handleConfirm = async () => {
                 resolution: formModal.way,
                 ...formModal
               },
-              () => {
-                visible.value = false;
+              (designerId, designerName) => {
+                // 添加任务必定是首次添加记录，不需要向前兼容
+                props.recordFn(
+                  {
+                    requestId: id,
+                    createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),
+                    userName: USER_INFO?.username || "",
+                    userId: USER_INFO?.id || null,
+                    descriptionExt: JSON.stringify({
+                      isRush: true,
+                      designerId,
+                      designerName
+                    }),
+                    content: JSON.stringify({
+                      fileList: newFileList
+                    })
+                  },
+                  () => {
+                    visible.value = false;
+                  }
+                );
               }
             );
           }

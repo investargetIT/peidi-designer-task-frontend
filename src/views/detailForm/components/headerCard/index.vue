@@ -1,18 +1,53 @@
 <script setup lang="ts">
+import { ref } from "vue";
+import DeleteDialog from "./deleteDialog.vue";
+import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
+import dayjs from "dayjs";
+
 const props = defineProps({
   taskDetail: {
     type: Object,
     required: true
+  },
+  recordDetail: {
+    type: Object,
+    required: true
+  },
+  updateFn: {
+    type: Function,
+    required: true
+  },
+  newRecordFn: {
+    type: Function,
+    required: true
   }
 });
 
-const getBadgeClass = (type: "status" | "priority" | "assignee") => {
-  const classes = {
-    status: "bg-green-100 text-green-800 border-green-300",
-    priority: "bg-red-100 text-red-800",
-    assignee: "bg-gray-100 text-gray-700"
-  };
-  return `inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium ${classes[type]}`;
+const deleteDialogRef = ref();
+
+const getBgColor = (type: "TASK_STATUS" | "PRIORITY" | "ASSIGNEE") => {
+  let classes;
+  if (type === "TASK_STATUS") {
+    const status = DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
+      item => item.value === props.taskDetail.basicInfo.statusSource
+    );
+    classes = status?.colorClass || "";
+  }
+  if (type === "PRIORITY") {
+    const priority = DESIGN_ENUM_OPTIONS.PRIORITY.find(
+      item => item.label === props.taskDetail.basicInfo.priority
+    );
+    classes = priority?.colorClass || "";
+  }
+  if (type === "ASSIGNEE") {
+    classes = "bg-gray-100 text-gray-700";
+  }
+
+  return `inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium ${classes} text-[#0a0a0a]`;
+};
+
+const handleDelete = () => {
+  deleteDialogRef.value?.initDialog(props.taskDetail.id);
 };
 </script>
 
@@ -28,8 +63,8 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
           {{ props.taskDetail.basicInfo.subType }}
         </p>
       </div>
-      <div class="flex gap-2" v-if="false">
-        <el-button type="primary" plain size="small">
+      <div class="flex gap-2">
+        <el-button type="primary" plain size="small" v-if="false">
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -53,7 +88,13 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
           编辑
         </el-button>
 
-        <el-button type="danger" plain size="small">
+        <el-button
+          type="danger"
+          plain
+          size="small"
+          @click="handleDelete"
+          :disabled="props.taskDetail?.basicInfo?.statusSource === 'CLOSE'"
+        >
           <template #icon>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -73,21 +114,35 @@ const getBadgeClass = (type: "status" | "priority" | "assignee") => {
               <line x1="14" x2="14" y1="11" y2="17"></line>
             </svg>
           </template>
-          删除
+          作废
         </el-button>
       </div>
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <span :class="getBadgeClass('status')">{{
+      <span :class="getBgColor('TASK_STATUS')">{{
         props.taskDetail.basicInfo.status
       }}</span>
-      <span :class="getBadgeClass('priority')">
+      <span :class="getBgColor('PRIORITY')">
         优先级：{{ props.taskDetail.basicInfo.priority }}
       </span>
-      <span :class="getBadgeClass('assignee')">
+      <span :class="getBgColor('ASSIGNEE')">
         负责人：{{ props.taskDetail.workInfo.assignee }}
       </span>
+      <span :class="getBgColor('ASSIGNEE')">
+        创建日期：{{
+          props.taskDetail.basicInfo.createAt
+            ? dayjs(props.taskDetail.basicInfo.createAt).format("YYYY-MM-DD")
+            : ""
+        }}
+      </span>
     </div>
+
+    <DeleteDialog
+      ref="deleteDialogRef"
+      :recordDetail="props.recordDetail"
+      :updateFn="props.updateFn"
+      :newRecordFn="props.newRecordFn"
+    />
   </div>
 </template>
