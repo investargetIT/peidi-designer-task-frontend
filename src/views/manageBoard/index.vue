@@ -313,9 +313,8 @@ const fetchDesignerWorkloads = () => {
               Number(item.primaryUsed) + Number(item.supportUsed)
             )
           });
-
-          designerLoad.value = designerLoadTemp;
         });
+        designerLoad.value = designerLoadTemp;
       } else {
         console.error("获取设计师工作负载失败:", res?.msg);
       }

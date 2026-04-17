@@ -94,7 +94,7 @@ watch(
   () => [props.taskDetail, props.recordDetail],
   ([taskDetail, recordDetail]) => {
     estimatedHours.value = taskDetail?.workInfo?.estimatedHours ?? 0;
-    actualHours.value = taskDetail.workInfo?.actualHours || 0;
+    actualHours.value = taskDetail.workInfo?.actualHours ?? 0;
     status.value = taskDetail?.basicInfo?.statusSource;
     assignedTo.value = taskDetail?.workInfo?.assignedId || "";
   },
