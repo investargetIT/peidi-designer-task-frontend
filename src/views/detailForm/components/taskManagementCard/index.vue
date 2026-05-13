@@ -5,6 +5,7 @@ import ExplanationDialog from "@/views/explanationDialog/index.vue";
 import LsiconSettingOutline from "~icons/lsicon/setting-outline";
 import BiClock from "~icons/bi/clock";
 import { QuestionFilled } from "@element-plus/icons-vue";
+import { a } from "node_modules/vue-types/dist/shared/vue-types.d8e57a80.mjs";
 
 const props = defineProps<{
   taskDetail: any;
@@ -15,6 +16,7 @@ const props = defineProps<{
 }>();
 
 const explanationDialogRef = ref(null);
+const dataSource = JSON.parse(localStorage.getItem("dataSource") || "{}");
 
 const status = ref();
 const estimatedHours = ref(0);
@@ -26,7 +28,7 @@ const assignedTo = ref(""); // 负责人ID
 // const showCompleteButton = computed(() => status.value === "IN_PROGRESS");
 
 //#region 判断选项是否应该被禁用的函数
-/* 
+/*
   1. 草稿-待分配-待确认-进行中-已完成待审核-已完成
   2. 草稿-待分配-待确认-已外包-已完成待审核-已完成
   3. 草稿-待分配-待确认-插单处理-已完成待审核-已完成
@@ -66,10 +68,21 @@ const isOptionDisabled = (optionValue: string) => {
   const allowedTransitions = statusTransitionRules[currentStatus] || [];
 
   // 如果目标状态不在允许列表中，则禁用
-  return !allowedTransitions.includes(optionValue);
+  if (!allowedTransitions.includes(optionValue)) {
+    return true;
+  }
+
+  // 特殊权限检查：只有固定ID的用户才能从待分配状态改变状态
+  const ALLOWED_USER_IDS = ["1874741663670775810"]; // 请根据实际需求修改这些ID
+  const currentUserId = dataSource?.id;
+
+  if (currentStatus === "REVIEW" && !ALLOWED_USER_IDS.includes(currentUserId)) {
+    return true;
+  }
+
+  return false;
 };
 //#endregion
-
 const getCurrentStatusColor = () => {
   const currentOption = DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
     option => option.value === status.value
