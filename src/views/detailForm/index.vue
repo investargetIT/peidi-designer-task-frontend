@@ -5,6 +5,7 @@ import WorkInfoCard from "./components/workInfoCard/index.vue";
 import DescriptionCard from "./components/descriptionCard/index.vue";
 import ModuleTabs from "./components/moduleTabs/index.vue";
 import TaskManagementCard from "./components/taskManagementCard/index.vue";
+import VerificationResultCard from "./components/verificationResultCard/index.vue";
 import { useRoute } from "vue-router";
 import {
   getPmDesignRequestsDetail,
@@ -77,7 +78,8 @@ const taskDetail = ref(
       startTime: "",
       endTime: ""
     },
-    description: ""
+    description: "",
+    verificationResult: ""
   }
 );
 const recordDetail = ref({
@@ -140,7 +142,8 @@ const fetchTaskDetail = () => {
             startTime: resData.startAt,
             endTime: resData.endAt
           },
-          description: resData.description
+          description: resData.description,
+          verificationResult: resData.verificationResult
         };
 
         // console.log("任务详情:", taskDetail.value);
@@ -316,6 +319,8 @@ onMounted(() => {
               :updateFn="fetchUpdateTaskDetail"
               :newRecordFn="fetchNewRecordDetail"
             />
+            <div class="my-9"></div>
+            <VerificationResultCard :taskDetail="taskDetail" />
           </div>
         </div>
       </div>

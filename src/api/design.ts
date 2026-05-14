@@ -201,6 +201,8 @@ export interface DesignTaskDetail {
   createUserId: number;
   /** 创建用户名（可为空）*/
   createUserName: string | null;
+  /** AI校验结果 */
+  verificationResult: string;
 }
 
 export const getPmDesignRequestsDetail = (params: { requestId: string }) => {

@@ -13,6 +13,8 @@ import { getPmDesignersPage, getPmDesignRequestsPage } from "@/api/design";
 import dayjs from "dayjs";
 import { DESIGN_ENUM_OPTIONS } from "@/constants/design";
 import BxDetail from "~icons/bx/detail";
+import EpCheck from "~icons/ep/check";
+import EpClose from "~icons/ep/close";
 import DialogCard from "./components/dialogCard/index.vue";
 import {
   Roles,
@@ -154,7 +156,7 @@ const fetchDesignTaskList = () => {
   })
     .then((res: any) => {
       if (res?.code === 200) {
-        // console.log("获取需求列表:", res?.data);
+        console.log("获取需求列表:", res?.data);
 
         // 如果当前页大于总页数，重置为最后一页 排除总页数为0的情况
         if (res.data?.current > res.data?.pages && res.data?.total !== 0) {
@@ -210,7 +212,7 @@ watch(
   () => [pagination.value.pageNo, pagination.value.pageSize],
   () => {
     fetchDesignTaskList();
-  },
+  }
   // {
   //   immediate: true
   // }
@@ -398,6 +400,15 @@ onMounted(() => {
             >
               {{ getStatusInfo(scope.row.status).text }}
             </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="isVerified" label="是否校验">
+          <template #default="scope">
+            <EpCheck
+              v-if="scope.row.verificationResult"
+              class="text-green-500 text-lg"
+            />
+            <div v-else>未校验</div>
           </template>
         </el-table-column>
         <el-table-column prop="priority" label="优先级">
