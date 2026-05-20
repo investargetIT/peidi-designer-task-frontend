@@ -68,7 +68,8 @@ const taskDetail = ref(
       priority: "",
       status: "",
       statusSource: "",
-      createAt: ""
+      createAt: "",
+      createUserId: ""
     },
     workInfo: {
       assignedId: "",
@@ -132,7 +133,8 @@ const fetchTaskDetail = () => {
                 item => item.value === resData.status
               )?.label || resData.status,
             statusSource: resData.status,
-            createAt: resData.createAt
+            createAt: resData.createAt,
+            createUserId: resData.createUserId,
           },
           workInfo: {
             assignedId: resData.assignedTo,

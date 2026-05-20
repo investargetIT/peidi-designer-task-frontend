@@ -98,7 +98,9 @@ const handleSave = () => {
       id: props.taskDetail.id,
       actualHours: actualHours.value,
       status: status.value,
-      assignedTo: assignedTo.value
+      assignedTo: assignedTo.value,
+      createUserId: props.taskDetail.basicInfo.createUserId,
+      deadline: props.taskDetail.basicInfo.deadline
     });
   }
 };
