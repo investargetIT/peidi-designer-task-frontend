@@ -76,7 +76,7 @@ const isOptionDisabled = (optionValue: string) => {
   const ALLOWED_USER_IDS = ["1874741663670775810"]; // 请根据实际需求修改这些ID
   const currentUserId = dataSource?.id;
 
-  if (currentStatus === "REVIEW" && !ALLOWED_USER_IDS.includes(currentUserId)) {
+  if (currentStatus === "PENDING" && !ALLOWED_USER_IDS.includes(currentUserId)) {
     return true;
   }
 

@@ -70,6 +70,7 @@ const searchForm: any = reactive({
     dayjs().startOf("month").format("YYYY-MM-DD"),
     dayjs().endOf("month").format("YYYY-MM-DD")
   ],
+  deadlineRange: [],
   createUserName: hasManageBoardPermission(USER_INFO?.id, Roles.R2)
     ? USER_INFO?.username
     : "",
@@ -90,6 +91,16 @@ const formatSearchStr = () => {
       searchValue: [
         dayjs(searchForm.createAtRange[0]).format("YYYY-MM-DDT00:00:00"),
         dayjs(searchForm.createAtRange[1]).format("YYYY-MM-DDT23:59:59")
+      ].join(",")
+    });
+  }
+  if (searchForm.deadlineRange && searchForm.deadlineRange.length !== 0) {
+    searchStr.push({
+      searchName: "deadline",
+      searchType: "betweenStr",
+      searchValue: [
+        dayjs(searchForm.deadlineRange[0]).format("YYYY-MM-DDT00:00:00"),
+        dayjs(searchForm.deadlineRange[1]).format("YYYY-MM-DDT23:59:59")
       ].join(",")
     });
   }
@@ -274,6 +285,16 @@ onMounted(() => {
         <el-form-item label="创建时间" prop="createAtRange">
           <el-date-picker
             v-model="searchForm.createAtRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          />
+        </el-form-item>
+
+        <el-form-item label="截止日期" prop="deadlineRange">
+          <el-date-picker
+            v-model="searchForm.deadlineRange"
             type="daterange"
             range-separator="至"
             start-placeholder="开始日期"
