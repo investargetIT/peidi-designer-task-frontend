@@ -5,7 +5,7 @@ import ExplanationDialog from "@/views/explanationDialog/index.vue";
 import LsiconSettingOutline from "~icons/lsicon/setting-outline";
 import BiClock from "~icons/bi/clock";
 import { QuestionFilled } from "@element-plus/icons-vue";
-import { a } from "node_modules/vue-types/dist/shared/vue-types.d8e57a80.mjs";
+import dayjs from "dayjs";
 
 const props = defineProps<{
   taskDetail: any;
@@ -94,14 +94,44 @@ const handleSave = () => {
   // 保存逻辑
   if (props.taskDetail?.id) {
     // console.log("更新任务", props.taskDetail, props.recordDetail);
-    props.updateFn({
-      id: props.taskDetail.id,
-      actualHours: actualHours.value,
-      status: status.value,
-      assignedTo: assignedTo.value,
-      createUserId: props.taskDetail.basicInfo.createUserId,
-      deadline: props.taskDetail.basicInfo.deadline
-    });
+    // 如果是从 待确认 变到 进行中，则传当前时间给startAt
+    // 如果是从 已完成待审核 变到 已完成，则传当前时间给endAt
+    if (
+      props.taskDetail?.basicInfo?.statusSource === "REVIEW" &&
+      status.value === "IN_PROGRESS"
+    ) {
+      props.updateFn({
+        id: props.taskDetail.id,
+        actualHours: actualHours.value,
+        status: status.value,
+        assignedTo: assignedTo.value,
+        createUserId: props.taskDetail.basicInfo.createUserId,
+        deadline: props.taskDetail.basicInfo.deadline,
+        startAt: dayjs().format("YYYY-MM-DDTHH:mm:ss")
+      });
+    } else if (
+      props.taskDetail?.basicInfo?.statusSource === "COMPLETED_REVIEW" &&
+      status.value === "COMPLETED"
+    ) {
+      props.updateFn({
+        id: props.taskDetail.id,
+        actualHours: actualHours.value,
+        status: status.value,
+        assignedTo: assignedTo.value,
+        createUserId: props.taskDetail.basicInfo.createUserId,
+        deadline: props.taskDetail.basicInfo.deadline,
+        endAt: dayjs().format("YYYY-MM-DDTHH:mm:ss")
+      });
+    } else {
+      props.updateFn({
+        id: props.taskDetail.id,
+        actualHours: actualHours.value,
+        status: status.value,
+        assignedTo: assignedTo.value,
+        createUserId: props.taskDetail.basicInfo.createUserId,
+        deadline: props.taskDetail.basicInfo.deadline
+      });
+    }
   }
 };
 

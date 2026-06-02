@@ -87,7 +87,8 @@ const handleConfirm = () => {
   }
   props.addFn(
     {
-      ...sourceFormData.value
+      ...sourceFormData.value,
+      startAt: dayjs().format("YYYY-MM-DDTHH:mm:ss")
     },
     (id, newFileList) => {
       visible.value = false;
