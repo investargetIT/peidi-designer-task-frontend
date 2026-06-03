@@ -242,6 +242,13 @@ const handleAttentionUsers = () => {
 };
 //#endregion
 
+// 禁用今天之前的日期
+const disabledDate = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return time.getTime() < today.getTime();
+};
+
 onMounted(() => {
   // 初始化钉钉权限
   if (navigator.userAgent.includes("DingTalk")) {
@@ -471,6 +478,7 @@ onMounted(() => {
                     type="datetime"
                     placeholder="请选择截止时间"
                     value-format="YYYY-MM-DDTHH:mm:ss"
+                    :disabled-date="disabledDate"
                     class="w-full"
                   />
                   <div class="text-xs text-gray-500 mt-1">
