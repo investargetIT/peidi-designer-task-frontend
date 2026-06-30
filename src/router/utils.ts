@@ -286,12 +286,20 @@ function initRouter() {
             handleAsyncRoutes(cloneDeep(routesTemp));
             resolve(router);
           } else {
-            message("获取用户信息失败", { type: "error" });
+            message("获取用户信息失败:登录过期，请重新登录", { type: "error" });
+            // 登录过期，自动执行退出账号操作
+            import("@/store/modules/user").then(({ useUserStoreHook }) => {
+              useUserStoreHook().logOut();
+            });
             resolve(router);
           }
         })
         .catch(error => {
-          message("获取用户信息失败:" + error.message, { type: "error" });
+          message("获取用户信息失败:登录过期，请重新登录", { type: "error" });
+          // 登录过期，自动执行退出账号操作
+          import("@/store/modules/user").then(({ useUserStoreHook }) => {
+            useUserStoreHook().logOut();
+          });
           resolve(router);
         });
 
