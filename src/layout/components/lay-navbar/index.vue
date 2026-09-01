@@ -14,11 +14,16 @@ import LogoutCircleRLine from "~icons/ri/logout-circle-r-line";
 import EpEdit from "~icons/ep/edit";
 import Setting from "~icons/ri/settings-3-line";
 import Check from "~icons/ep/check";
+import EpArrowDown from "~icons/ep/arrow-down";
 import RiFormatClear from "~icons/ri/format-clear";
 import { isDevEnv } from "@/utils/debug";
 import { emitter } from "@/utils/mitt";
 import { formatToken, getToken } from "@/utils/auth";
-import { ref } from "vue";
+import { storageLocal } from "@pureadmin/utils";
+import { computed, ref } from "vue";
+
+// 从本地存储中读取用户信息，作为登录用户名的兜底来源
+const USER_INFO: any = storageLocal().getItem("dataSource");
 
 const { onReset } = useDataThemeChange();
 
@@ -37,6 +42,11 @@ const {
 } = useNav();
 
 const { t, locale, translationCh, translationEn } = useTranslationLang();
+
+// 登录用户名：优先使用 store 中的昵称/用户名，为空时回退到 dataSource 中的 username
+const displayUsername = computed(
+  () => username.value || USER_INFO?.username || ""
+);
 
 emitter.on("logout", () => {
   logout();
@@ -119,9 +129,16 @@ const pwdChangeVisible = ref(false);
 
       <!-- 退出登录 -->
       <el-dropdown trigger="click">
-        <span class="el-dropdown-link navbar-bg-hover select-none">
-          <img :src="userAvatar" :style="avatarsStyle" />
-          <p v-if="username" class="dark:text-white">{{ username }}</p>
+        <span class="el-dropdown-link user-info navbar-bg-hover select-none">
+          <img
+            :src="userAvatar"
+            :style="avatarsStyle"
+            class="user-avatar"
+          />
+          <p v-if="displayUsername" class="user-name dark:text-white">
+            {{ displayUsername }}
+          </p>
+          <el-icon class="user-caret"><EpArrowDown /></el-icon>
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
@@ -194,6 +211,53 @@ const pwdChangeVisible = ref(false);
         width: 22px;
         height: 22px;
         border-radius: 50%;
+      }
+    }
+
+    /* 用户信息样式 */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 12px;
+      margin-right: 8px;
+      border-radius: 999px;
+      background: #f4f6fa;
+      transition: all 0.25s ease;
+
+      &:hover {
+        background: #e8edf5;
+        box-shadow: 0 2px 8px rgba(0, 21, 41, 0.08);
+      }
+
+      .user-avatar {
+        width: 26px;
+        height: 26px;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px rgba(0, 21, 41, 0.08);
+        flex-shrink: 0;
+      }
+
+      .user-name {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1;
+        color: #1f2d3d;
+      }
+
+      .user-caret {
+        font-size: 12px;
+        color: #909399;
+        transition: transform 0.25s ease;
+      }
+
+      &:hover .user-caret {
+        transform: rotate(-180deg);
       }
     }
   }

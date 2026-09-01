@@ -23,6 +23,14 @@ const estimatedHours = ref(0);
 const actualHours = ref(0);
 const assignedTo = ref(""); // 负责人ID
 
+// 只有这些用户可以修改负责人
+const ALLOWED_USER_IDS = ["1874741663670775810"];
+const isAssigneeEditable = computed(() => {
+  const currentUserId = dataSource?.id;
+  // 只有允许的用户才能修改负责人，不限制任务状态
+  return ALLOWED_USER_IDS.includes(currentUserId);
+});
+
 // 计算属性控制按钮显示逻辑
 // const showStartButton = computed(() => status.value === "PENDING");
 // const showCompleteButton = computed(() => status.value === "IN_PROGRESS");
@@ -236,6 +244,7 @@ watch(
           v-model="assignedTo"
           placeholder="请选择负责人"
           class="w-full"
+          :disabled="!isAssigneeEditable"
         >
           <el-option
             v-for="option in props.designers"

@@ -67,16 +67,16 @@ const designers = ref([]);
 const searchFormRef = ref<FormInstance>();
 const searchForm: any = reactive({
   createAtRange: [
-    dayjs().startOf("month").format("YYYY-MM-DD"),
-    dayjs().endOf("month").format("YYYY-MM-DD")
+    dayjs()
+      .subtract(29, "day")
+      .format("YYYY-MM-DD"),
+    dayjs().format("YYYY-MM-DD")
   ],
   deadlineRange: [],
   createUserName: hasManageBoardPermission(USER_INFO?.id, Roles.R2)
     ? USER_INFO?.username
     : "",
-  assignedToName: hasManageBoardPermission(USER_INFO?.id, Roles.R3)
-    ? USER_INFO?.username
-    : "",
+  assignedToName: "",
   status: "",
   priority: "",
   usageScenario: "",
@@ -209,6 +209,16 @@ const fetchDesignerWorkloads = () => {
           label: item.designerName,
           value: item.userId
         }));
+
+        // 默认选择登录用户：仅当登录用户在负责人下拉列表中存在时才选中
+        if (USER_INFO?.username) {
+          const isInList = designers.value.some(
+            item => item.label === USER_INFO.username
+          );
+          if (isInList) {
+            searchForm.assignedToName = USER_INFO.username;
+          }
+        }
       } else {
         console.error("获取设计师工作负载失败:", res?.msg);
       }
