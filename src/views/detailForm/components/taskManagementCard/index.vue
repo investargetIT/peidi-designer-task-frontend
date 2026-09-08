@@ -23,8 +23,46 @@ const estimatedHours = ref(0);
 const actualHours = ref(0);
 const assignedTo = ref(""); // 负责人ID
 
+/**
+ * 【模式开关】
+ * true  = 仅三态流转模式：状态只展示「待分配 / 进行中 / 已完成」，且仅在这三者之间流转
+ * false = 完整流转模式：展示全部状态，走完整状态流转链路（后续如需改回，只需设为 false）
+ */
+const USE_THREE_STATE_MODE = true;
+
+// 三态模式下仅展示的状态（待分配 / 进行中 / 已完成）
+const VISIBLE_STATUSES = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+
+// 筛选后状态下拉选项：
+// 三态模式：只保留指定 3 个状态；若当前任务状态不在其中，强制追加展示（保证显示正确）
+// 完整模式：展示全部状态
+const filteredStatusOptions = computed(() => {
+  // ========== 完整模式原逻辑（保留备用，可随时切回） ==========
+  if (!USE_THREE_STATE_MODE) {
+    return DESIGN_ENUM_OPTIONS.TASK_STATUS;
+  }
+  // ==========================================================
+  const options = DESIGN_ENUM_OPTIONS.TASK_STATUS.filter(option =>
+    VISIBLE_STATUSES.includes(option.value)
+  );
+  const currentStatus = status.value;
+  if (
+    currentStatus &&
+    !VISIBLE_STATUSES.includes(currentStatus) &&
+    !options.some(option => option.value === currentStatus)
+  ) {
+    const currentOption = DESIGN_ENUM_OPTIONS.TASK_STATUS.find(
+      option => option.value === currentStatus
+    );
+    if (currentOption) {
+      options.unshift(currentOption);
+    }
+  }
+  return options;
+});
+
 // 只有这些用户可以修改负责人
-const ALLOWED_USER_IDS = ["1874741663670775810"];
+const ALLOWED_USER_IDS = ["1874741663670775810", "1926449443739600965"];
 const isAssigneeEditable = computed(() => {
   const currentUserId = dataSource?.id;
   // 只有允许的用户才能修改负责人，不限制任务状态
@@ -50,7 +88,19 @@ const isOptionDisabled = (optionValue: string) => {
     return false;
   }
 
-  // 定义状态转换规则
+  // ====== 三态模式流转规则（待分配 → 进行中 → 已完成） ======
+  // 仅在三态模式下使用；如需允许从「进行中」回退到「待分配」，可在下方数组中加入 "PENDING"
+  const threeStateTransitionRules: Record<string, string[]> = {
+    // 待分配
+    PENDING: ["IN_PROGRESS"],
+    // 进行中
+    IN_PROGRESS: ["COMPLETED"],
+    // 已完成
+    COMPLETED: []
+  };
+  // ===========================================================
+
+  // ========== 完整模式流转规则（原逻辑保留备用，可随时切回） ==========
   const statusTransitionRules: Record<string, string[]> = {
     // 草稿
     DRAFT: ["PENDING"],
@@ -71,20 +121,30 @@ const isOptionDisabled = (optionValue: string) => {
     // 已关闭
     CLOSE: []
   };
+  // =================================================================
+
+  // 按模式选择流转规则
+  const transitionRules = USE_THREE_STATE_MODE
+    ? threeStateTransitionRules
+    : statusTransitionRules;
 
   // 获取允许转换的状态列表
-  const allowedTransitions = statusTransitionRules[currentStatus] || [];
+  const allowedTransitions = transitionRules[currentStatus] || [];
 
   // 如果目标状态不在允许列表中，则禁用
   if (!allowedTransitions.includes(optionValue)) {
     return true;
   }
 
-  // 特殊权限检查：只有固定ID的用户才能从待分配状态改变状态
-  const ALLOWED_USER_IDS = ["1874741663670775810"]; // 请根据实际需求修改这些ID
+  // 特殊权限检查：只有特定负责人（固定ID）才能从「待分配」状态流转任务（开启任务）
+  // 说明：三态模式与完整模式均生效。如需对所有用户放开，去掉下方 if 即可
+  const ALLOWED_USER_IDS = ["1874741663670775810", "1926449443739600965"]; // 请根据实际需求修改这些ID
   const currentUserId = dataSource?.id;
 
-  if (currentStatus === "PENDING" && !ALLOWED_USER_IDS.includes(currentUserId)) {
+  if (
+    currentStatus === "PENDING" &&
+    !ALLOWED_USER_IDS.includes(currentUserId)
+  ) {
     return true;
   }
 
@@ -98,10 +158,87 @@ const getCurrentStatusColor = () => {
   return currentOption ? currentOption.colorClass : "";
 };
 
+// 状态流转提示：根据当前状态实时告诉用户「下一步能流转到什么」，避免误解为 bug
+const statusTip = computed(() => {
+  const currentStatus = status.value;
+  // ====== 三态模式提示文案 ======
+  if (USE_THREE_STATE_MODE) {
+    const tipMap: Record<string, string> = {
+      PENDING: "当前为「待分配」，只能流转到：进行中（开启任务需负责人权限）",
+      IN_PROGRESS: "当前为「进行中」，只能流转到：已完成",
+      COMPLETED: "当前为「已完成」，已是最终状态，不能再流转",
+      REVIEW: "当前为「待确认」，需先流转到「进行中」后才能继续",
+      DRAFT: "当前为「草稿」，尚未进入分配流程",
+      OUTSOURCED: "当前为「已外包」，请按外包流程跟进",
+      RUSH: "当前为「插单处理」，请按插单流程跟进",
+      COMPLETED_REVIEW: "当前为「已完成待审核」，需流转到「已完成」",
+      CLOSE: "当前为「已关闭」，不可操作"
+    };
+    return tipMap[currentStatus] || "";
+  }
+  // ========== 完整模式提示文案（原逻辑保留备用） ==========
+  const fullTipMap: Record<string, string> = {
+    DRAFT: "当前为「草稿」，可流转到：待分配",
+    PENDING: "当前为「待分配」，可流转到：待确认（需负责人权限）",
+    REVIEW: "当前为「待确认」，可流转到：进行中",
+    IN_PROGRESS: "当前为「进行中」，可流转到：已完成待审核",
+    OUTSOURCED: "当前为「已外包」，可流转到：已完成待审核",
+    RUSH: "当前为「插单处理」，可流转到：已完成待审核",
+    COMPLETED_REVIEW: "当前为「已完成待审核」，可流转到：已完成",
+    COMPLETED: "当前为「已完成」，已是最终状态，不能再流转",
+    CLOSE: "当前为「已关闭」，不可操作"
+  };
+  return fullTipMap[currentStatus] || "";
+});
+
 const handleSave = () => {
   // 保存逻辑
   if (props.taskDetail?.id) {
     // console.log("更新任务", props.taskDetail, props.recordDetail);
+
+    // if 前一个为 待分配 后一个为 进行中，则传当前时间给startAt
+    // if 前一个为 进行中 后一个为 已完成，则传当前时间给endAt
+    if (USE_THREE_STATE_MODE) {
+      if (
+        props.taskDetail?.basicInfo?.statusSource === "PENDING" &&
+        status.value === "IN_PROGRESS"
+      ) {
+        props.updateFn({
+          id: props.taskDetail.id,
+          actualHours: actualHours.value,
+          status: status.value,
+          assignedTo: assignedTo.value,
+          createUserId: props.taskDetail.basicInfo.createUserId,
+          deadline: props.taskDetail.basicInfo.deadline,
+          startAt: dayjs().format("YYYY-MM-DDTHH:mm:ss")
+        });
+      } else if (
+        props.taskDetail?.basicInfo?.statusSource === "IN_PROGRESS" &&
+        status.value === "COMPLETED"
+      ) {
+        props.updateFn({
+          id: props.taskDetail.id,
+          actualHours: actualHours.value,
+          status: status.value,
+          assignedTo: assignedTo.value,
+          createUserId: props.taskDetail.basicInfo.createUserId,
+          deadline: props.taskDetail.basicInfo.deadline,
+          endAt: dayjs().format("YYYY-MM-DDTHH:mm:ss")
+        });
+      } else {
+        props.updateFn({
+          id: props.taskDetail.id,
+          actualHours: actualHours.value,
+          status: status.value,
+          assignedTo: assignedTo.value,
+          createUserId: props.taskDetail.basicInfo.createUserId,
+          deadline: props.taskDetail.basicInfo.deadline
+        });
+      }
+      return;
+    }
+
+    // ================== 以下为原完整流转模式逻辑（保留备用，可随时切回） ==================
     // 如果是从 待确认 变到 进行中，则传当前时间给startAt
     // 如果是从 已完成待审核 变到 已完成，则传当前时间给endAt
     if (
@@ -140,6 +277,7 @@ const handleSave = () => {
         deadline: props.taskDetail.basicInfo.deadline
       });
     }
+    // ====================================================================================
   }
 };
 
@@ -275,20 +413,17 @@ watch(
               v-if="status"
               class="h-2 w-2 rounded-full ml-1"
               :class="getCurrentStatusColor()"
-            ></div>
+            />
           </template>
           <el-option
-            v-for="option in DESIGN_ENUM_OPTIONS.TASK_STATUS"
+            v-for="option in filteredStatusOptions"
             :key="option.value"
             :label="option.label"
             :value="option.value"
             :disabled="isOptionDisabled(option.value)"
           >
             <div class="flex items-center gap-2">
-              <div
-                class="h-2 w-2 rounded-full"
-                :class="option.colorClass"
-              ></div>
+              <div class="h-2 w-2 rounded-full" :class="option.colorClass" />
               {{ option.label }}
               <!-- 显示禁用提示 -->
               <span
@@ -300,6 +435,27 @@ watch(
             </div>
           </el-option>
         </el-select>
+        <!-- 状态流转提示：告诉用户当前状态能选择什么 -->
+        <p
+          v-if="statusTip"
+          class="text-xs text-gray-400 flex items-center gap-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+          {{ statusTip }}
+        </p>
       </div>
 
       <!-- 预计工时 -->

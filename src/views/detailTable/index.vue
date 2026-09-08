@@ -16,6 +16,7 @@ import BxDetail from "~icons/bx/detail";
 import EpCheck from "~icons/ep/check";
 import EpClose from "~icons/ep/close";
 import DialogCard from "./components/dialogCard/index.vue";
+import OneClickDialog from "./components/oneClickDialog/index.vue";
 import {
   Roles,
   isAdmin,
@@ -64,12 +65,22 @@ const pagination = ref({
 //#region 搜索相关
 // 负责人列表
 const designers = ref([]);
+
+/**
+ * 需求状态筛选下拉选项
+ * 仅展示三个常用状态（待分配 / 进行中 / 已完成）
+ * 完整状态列表 DESIGN_ENUM_OPTIONS.TASK_STATUS 保留备用，如需恢复全部状态，直接改回即可
+ */
+const TASK_STATUS_FILTER_OPTIONS = computed(() => {
+  const visibleStatuses = ["PENDING", "IN_PROGRESS", "COMPLETED"];
+  return DESIGN_ENUM_OPTIONS.TASK_STATUS.filter(item =>
+    visibleStatuses.includes(item.value)
+  );
+});
 const searchFormRef = ref<FormInstance>();
 const searchForm: any = reactive({
   createAtRange: [
-    dayjs()
-      .subtract(29, "day")
-      .format("YYYY-MM-DD"),
+    dayjs().subtract(29, "day").format("YYYY-MM-DD"),
     dayjs().format("YYYY-MM-DD")
   ],
   deadlineRange: [],
@@ -261,6 +272,10 @@ const getPriorityInfo = (priority: number) => {
 };
 //#endregion
 
+//#region 一键处理任务弹窗相关
+const oneClickDialogRef = ref();
+//#endregion
+
 //#region 任务详情相关
 const dialogCardRef = ref();
 const handleOpenDetailDialog = (id: string | number) => {
@@ -281,6 +296,28 @@ onMounted(() => {
 
 <template>
   <div>
+    <!-- 一键处理任务 -->
+    <div class="flex justify-end mb-[12px]">
+      <el-button type="primary" @click="oneClickDialogRef?.init()">
+        <template #icon>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <path d="m9 11 3 3L22 4" />
+          </svg>
+        </template>
+        一键处理任务
+      </el-button>
+    </div>
+
     <el-card
       shadow="never"
       style="margin-bottom: 12px; border-radius: 10px"
@@ -344,7 +381,7 @@ onMounted(() => {
             clearable
           >
             <el-option
-              v-for="item in DESIGN_ENUM_OPTIONS.TASK_STATUS"
+              v-for="item in TASK_STATUS_FILTER_OPTIONS"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -498,6 +535,7 @@ onMounted(() => {
     </el-card>
 
     <DialogCard ref="dialogCardRef" />
+    <OneClickDialog ref="oneClickDialogRef" @refresh="fetchDesignTaskList" />
   </div>
 </template>
 
