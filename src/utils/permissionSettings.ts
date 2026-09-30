@@ -5,7 +5,9 @@ import { Roles } from "@/views/manageBoard/config/permission";
 // 管理员 id
 const ADMIN_USER_IDS = [
   // 廖佳晨
-  "1874741663670775810"
+  "1874741663670775810",
+  // 王湘妮
+  "1926449443739601746"
 ];
 
 // 开发人员 id
