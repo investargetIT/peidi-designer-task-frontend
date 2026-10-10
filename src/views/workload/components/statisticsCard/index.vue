@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import dayjs from "dayjs";
 
 const props = defineProps({
   statisticsInfo: {
     type: Object,
     required: true
   }
+});
+
+// 当前选中的统计年月（v-model:month）
+const month = defineModel<string>("month", {
+  default: () => dayjs().format("YYYY-MM")
 });
 
 const statusItems = computed(() => [
@@ -38,7 +44,7 @@ const percentage = computed(() => {
 <template>
   <div class="space-y-6">
     <!-- Header Section -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
         <h2 class="text-lg font-semibold text-gray-800">设计师工作负载</h2>
         <p class="text-sm text-gray-600">
@@ -49,15 +55,28 @@ const percentage = computed(() => {
         </p>
       </div>
 
-      <div class="flex gap-4 text-sm">
-        <div
-          v-for="item in statusItems"
-          :key="item.id"
-          class="flex items-center gap-1.5"
-        >
-          <div class="h-2 w-2 rounded-full" :class="item.colorClass"></div>
-          <span>{{ item.label }} {{ item.count }}</span>
+      <div class="flex items-center gap-4">
+        <div class="flex gap-4 text-sm">
+          <div
+            v-for="item in statusItems"
+            :key="item.id"
+            class="flex items-center gap-1.5"
+          >
+            <div class="h-2 w-2 rounded-full" :class="item.colorClass"></div>
+            <span>{{ item.label }} {{ item.count }}</span>
+          </div>
         </div>
+
+        <!-- 年月选择 -->
+        <el-date-picker
+          v-model="month"
+          type="month"
+          :clearable="false"
+          placeholder="选择年月"
+          format="YYYY-MM"
+          value-format="YYYY-MM"
+          style="width: 140px"
+        />
       </div>
     </div>
 

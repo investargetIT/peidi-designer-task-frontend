@@ -3,8 +3,11 @@ import StatisticsCard from "./components/statisticsCard/index.vue";
 import PersonCard from "./components/personCard/index.vue";
 import InfoCard from "./components/infoCard/index.vue";
 import { getPmDesignersPage } from "@/api/design";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import dayjs from "dayjs";
+
+// 当前选中的年月（格式：YYYY-MM）
+const selectedMonth = ref(dayjs().format("YYYY-MM"));
 
 const statisticsInfo = ref({
   onDutyPeople: 0,
@@ -46,6 +49,7 @@ const designers = ref([
 
 //#region 请求相关
 const fetchDesignerWorkloads = () => {
+  const [year, month] = selectedMonth.value.split("-").map(Number);
   return getPmDesignersPage({
     pageNo: 1,
     pageSize: 10e3,
@@ -54,8 +58,8 @@ const fetchDesignerWorkloads = () => {
       searchType: "equals",
       searchValue: '"active"'
     }),
-    year: dayjs().year(),
-    month: dayjs().month() + 1
+    year,
+    month
   })
     .then((res: any) => {
       if (res?.code === 200) {
@@ -131,6 +135,11 @@ const fetchDesignerWorkloads = () => {
 };
 //#endregion
 
+// 月份切换时重新请求
+watch(selectedMonth, () => {
+  fetchDesignerWorkloads();
+});
+
 onMounted(() => {
   fetchDesignerWorkloads();
 });
@@ -140,7 +149,7 @@ onMounted(() => {
   <div class="space-y-6">
     <!-- Statistics Card -->
     <div>
-      <StatisticsCard :statisticsInfo="statisticsInfo" />
+      <StatisticsCard :statisticsInfo="statisticsInfo" v-model:month="selectedMonth" />
     </div>
 
     <!-- Designer Cards Grid -->
