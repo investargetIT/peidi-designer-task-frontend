@@ -3,6 +3,7 @@ import StatisticsCard from "./components/statisticsCard/index.vue";
 import PersonCard from "./components/personCard/index.vue";
 import InfoCard from "./components/infoCard/index.vue";
 import { getPmDesignersPage } from "@/api/design";
+import { resolveWorkloadLabels } from "./config";
 import { onMounted, ref, watch } from "vue";
 import dayjs from "dayjs";
 
@@ -92,6 +93,8 @@ const fetchDesignerWorkloads = () => {
           statisticsInfoTemp.totalHours += item.totalHours;
           statisticsInfoTemp.maxHours += item.totalLimit;
 
+          const workloadLabels = resolveWorkloadLabels(item.designerName);
+
           designersTemp.push({
             id: item.designerId,
             name: item.designerName,
@@ -101,18 +104,26 @@ const fetchDesignerWorkloads = () => {
             workloads: [
               {
                 title: "主职能工时",
+                label: workloadLabels.primary,
                 current: item.primaryHours,
                 max: item.primaryLimit
               },
               {
                 title: "支援工时",
+                label: workloadLabels.support,
                 current: item.supportHours,
                 max: item.supportLimit
               }
             ],
             stats: [
-              { value: item.ongoingPrimaryProjects, label: "主职责任务" },
-              { value: item.ongoingSupportProjects, label: "支援任务" },
+              {
+                value: item.ongoingPrimaryProjects,
+                label: workloadLabels.primaryTask
+              },
+              {
+                value: item.ongoingSupportProjects,
+                label: workloadLabels.supportTask
+              },
               { value: `${item.totalHours}h`, label: "本月总工时" }
             ],
             cumulative: {
@@ -124,7 +135,8 @@ const fetchDesignerWorkloads = () => {
         });
 
         statisticsInfo.value = statisticsInfoTemp;
-        designers.value = designersTemp;
+        // 人员卡片整体倒序展示
+        designers.value = designersTemp.reverse();
       } else {
         console.error("获取设计师工作负载失败:", res?.msg);
       }
